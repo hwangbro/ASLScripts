@@ -57,11 +57,16 @@ startup
     {
         return new MemoryWatcherList
         {
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10BB)) { Name = "roomID" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x0C16)) { Name = "opponentName" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C05)) { Name = "whoseTurn"},
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C07)) { Name = "duelFinished"},
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C05)) { Name = "whoseTurn"}, //C2 is ours, C3 is theirs
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x0C16)) { Name = "opponentName" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0D10)) { Name = "curMenuItem"},
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0D11)) { Name = "cursorXPos"},
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10B5)) { Name = "inEvent"},
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10BB)) { Name = "roomID" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1D80)) { Name = "curSongID"},
+
+            new MemoryWatcher<byte>(hramOffset + 0x10) { Name = "input" },
         };
     });
 
@@ -101,6 +106,11 @@ init
 update
 {
     vars.watchers.UpdateAll(game);
+}
+
+start
+{
+    return vars.watchers["cursorXPos"].Current == 0x01 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["curSongID"].Old == 0x86 && vars.watchers["curMenuItem"].Current == 0x1;
 }
 
 split

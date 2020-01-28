@@ -74,21 +74,21 @@ startup
     {
         return new MemoryWatcherList
         {
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0001)) { Name = "soundID" }, // OK
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0490)) { Name = "hofTile" }, // WIP
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C26)) { Name = "cursorIndex" }, /// OK
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0D40)) { Name = "hofPlayerShown" }, // OK
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FD7)) { Name = "enemyPkmn" }, // CFD8 -> CFD7
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0FD9)) { Name = "enemyPkmnName" }, //CFDA -> CFD9
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x1049)) { Name = "opponentName" }, //D04A -> D049
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1162)) { Name = "partyCount" }, //D163 -> D162
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1358)) { Name = "playerID" }, //D359 -> D358
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x135D)) { Name = "mapIndex" }, //D35E -> D35D
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1360)) { Name = "playerPos" }, //D361 -> D360
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0001)) { Name = "soundID" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0490)) { Name = "hofTile" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C26)) { Name = "cursorIndex" },
+            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0D40)) { Name = "hofPlayerShown" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FD7)) { Name = "enemyPkmn" },
+            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0FD9)) { Name = "enemyPkmnName" },
+            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x1049)) { Name = "opponentName" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1162)) { Name = "partyCount" },
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1358)) { Name = "playerID" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x135D)) { Name = "mapIndex" },
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1360)) { Name = "playerPos" },
             new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1FFD)) { Name = "stack" },
 
-            new MemoryWatcher<byte>(hramOffset + 0x34) { Name = "input" }, // ?
-            new MemoryWatcher<byte>(rBGP) { Name = "rBGP" }, // ?
+            new MemoryWatcher<byte>(hramOffset + 0x34) { Name = "input" },
+            new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
         };
     });
 
