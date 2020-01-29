@@ -3,7 +3,7 @@ This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveS
 
 ### Supported emulators:
 - Gambatte-Speedrun r600+
-    - **Note:** Your emulator must be named "gambatte_qt.exe" in order for the splitter to work. If you want to use a different name, navigate to "\Livesplit\Components\\", open the appropriate autosplitter script, and edit the first line inside the "state" block to the name of your choosing.
+    - **Note:** Your emulator must be named "gambatte_qt.exe" in order for the splitter to work. If you want to use a different name, navigate to "\Livesplit\Components\\", open the appropriate autosplitter script, and replace the emulator name on the first line inside the "state" block to the name of your choosing.
 
 ## Features
 - Automatically start the timer when you start a new game
