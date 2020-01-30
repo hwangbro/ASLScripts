@@ -79,7 +79,7 @@ startup
             { "nikki", new Dictionary<string, uint> { { "opponentName", 0x03C7u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "amy", new Dictionary<string, uint> { { "opponentName", 0x03BFu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "gene", new Dictionary<string, uint> { { "opponentName", 0x03BBu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "ken", new Dictionary<string, uint> { { "opponentName", 0x03E3u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
+            { "ken", new Dictionary<string, uint> { { "opponentName", 0x03D3u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "murray", new Dictionary<string, uint> { { "opponentName", 0x03CBu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "rick", new Dictionary<string, uint> { { "opponentName", 0x03CFu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "mitch", new Dictionary<string, uint> { { "opponentName", 0x03B7u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
