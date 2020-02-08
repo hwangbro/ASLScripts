@@ -145,7 +145,7 @@ update
 
 start
 {
-    return vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5C43;//0x5B91;
+    return vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5C43;
 }
 
 split
