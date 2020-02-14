@@ -116,8 +116,8 @@ startup
             { "elite4_5b", new Dictionary<string, uint> { { "enemyPkmnName", 0x8E8F8095 }, { "mapIndex", 0x78u }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
 
             { "rival", new Dictionary<string, uint> { { "mapIndex", 0u }, { "partyCount", 1u } } },
-            { "enterMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x3Bu }, { "playerPos", 0x0E23u } } },
-            { "exitMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x0Fu }, { "playerPos", 0x1805u } } },
+            { "enterMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x3Bu }, { "playerPos", 0x1205u } } },
+            { "exitMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x0Fu }, { "playerPos", 0x1B03u } } },
             { "exitVictoryRoad", new Dictionary<string, uint> { { "mapIndex", 0x22u }, { "playerPos", 0x0E1Fu } } },
             { "exitViridianForest", new Dictionary<string, uint> { { "mapIndex", 0x2Fu}, { "playerPos", 0x0407u } } },
             { "hm02", new Dictionary<string, uint> { { "soundID", 0x94u }, { "mapIndex", 0xBCu } } },
