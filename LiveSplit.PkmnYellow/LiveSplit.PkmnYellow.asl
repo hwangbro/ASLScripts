@@ -1,5 +1,6 @@
 state("gambatte_qt") {}
 state("gambatte") {}
+state("gambatte_speedrun") {}
 
 startup
 {
@@ -146,6 +147,11 @@ update
 start
 {
     return vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5C43;
+}
+
+reset
+{
+    return vars.watchers["cursorIndex"].Current == 1 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5C43;
 }
 
 split
