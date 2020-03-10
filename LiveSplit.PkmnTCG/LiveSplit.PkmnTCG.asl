@@ -1,5 +1,6 @@
 state("gambatte_qt") {}
 state("gambatte") {}
+state("gambatte_speedrun") {}
 
 startup
 {
