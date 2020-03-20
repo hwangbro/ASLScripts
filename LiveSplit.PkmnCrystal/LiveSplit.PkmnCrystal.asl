@@ -41,6 +41,8 @@ startup
 
     vars.timer_OnStart = (EventHandler)((s, e) =>
     {
+        vars.lastTrainer = 0;
+        vars.endTriggered = false;
         vars.splits = vars.GetSplitList();
     });
     timer.OnStart += vars.timer_OnStart;
