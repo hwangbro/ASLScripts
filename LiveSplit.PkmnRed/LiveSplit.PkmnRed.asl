@@ -164,6 +164,13 @@ start
     return vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x80) == 0 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5B91;
 }
 
+reset
+{
+    bool downBuffer = vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x80) == 1;
+    bool notBuffered = vars.watchers["cursorIndex"].Current == 1 && (vars.watchers["input"].Current & 0x01) == 1;
+    return (downBuffer || notBuffered) && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5B91;
+}
+
 split
 {
     foreach (var _split in vars.splits)
