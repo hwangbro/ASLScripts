@@ -25,7 +25,6 @@ startup
     settings.Add("elite4_3", true, "Agatha");
     settings.Add("elite4_4", true, "Lance");
     settings.Add("elite4_5", true, "Champion");
-    settings.Add("elite4_5b", true, "Champion (vape)", "elite4_5");
 
     settings.CurrentDefaultParent = "other";
     settings.Add("rival", false, "Leave Oak's Lab (after rival fight)");
@@ -114,7 +113,6 @@ startup
             { "elite4_3", new Dictionary<string, uint> { { "opponentName", 0x93808680 }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } }, //{ "mapIndex", 0xF7u }
             { "elite4_4", new Dictionary<string, uint> { { "opponentName", 0x828D808B }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } }, //{ "mapIndex", 0x71u }
             { "elite4_5", new Dictionary<string, uint> { { "enemyPkmnName", 0x91808B85 }, { "mapIndex", 0x78u }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "elite4_5b", new Dictionary<string, uint> { { "enemyPkmnName", 0x8E8F8095 }, { "mapIndex", 0x78u }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
 
             { "rival", new Dictionary<string, uint> { { "mapIndex", 0u }, { "partyCount", 1u } } },
             { "enterMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x3Bu }, { "playerPos", 0x1205u } } },
@@ -164,6 +162,9 @@ split
             foreach (var _condition in _split.Value)
             {
                 if (vars.watchers[_condition.Key].Current == _condition.Value)
+                    count++;
+                // have one split for both vape and flareon fights
+                else if (_split.Key == "elite4_5" && vars.watchers[_condition.Key].Current == 0x8E8F8095)
                     count++;
             }
 
