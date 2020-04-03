@@ -83,6 +83,7 @@ startup
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x111B)) { Name = "trainerID" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0490)) { Name = "tileMap" },
             new MemoryWatcher<byte>(hramOffset + 0x5A) { Name = "hOAMUpdate"},
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x11A1)) { Name = "playerID" },
         };
     });
 
@@ -137,6 +138,12 @@ update
     vars.watchers.UpdateAll(game);
     if (vars.watchers["opponentClass"].Current != vars.watchers["opponentClass"].Old)
         vars.lastTrainer = vars.watchers["opponentClass"].Old;
+
+    // reset lastTrainer if hard/soft reset
+    if (vars.watchers["playerID"].Current == 0)
+    {
+        vars.lastTrainer = 0;
+    }
 
     // TO-DO: find cleaner method to check for red textbox than using endTriggered bit
     if (vars.lastTrainer == 63)

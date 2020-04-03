@@ -1,4 +1,4 @@
-# LiveSplit.Crystal
+# LiveSplit.Gold
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Pokémon Gold Version** on emulator.
 
 ### Supported emulators:
