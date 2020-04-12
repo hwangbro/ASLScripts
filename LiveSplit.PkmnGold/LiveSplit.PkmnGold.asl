@@ -79,11 +79,17 @@ startup
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1118)) { Name = "opponentClass" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C12)) { Name = "battleEnded" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FE9)) { Name = "battleResult" },
-            new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x111B)) { Name = "trainerID" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0490)) { Name = "tileMap" },
-            new MemoryWatcher<byte>(hramOffset + 0x5A) { Name = "hOAMUpdate"},
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x11A1)) { Name = "playerID" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1199)) { Name = "options" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0EAB)) { Name = "menuSelection" },
+
+            new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
+            new MemoryWatcher<byte>(hramOffset + 0x5A) { Name = "hOAMUpdate" },
+            new MemoryWatcher<byte>(hramOffset + 0x26) { Name = "inputPressed" },
+            new MemoryWatcher<byte>(hramOffset + 0x2C) { Name = "inMenu" },
+
         };
     });
 
@@ -151,6 +157,14 @@ update
         if(vars.watchers["hOAMUpdate"].Current == 1 && vars.watchers["tileMap"].Old == 121 && vars.watchers["tileMap"].Current == 22)
             vars.endTriggered = true;
     }
+}
+
+start
+{
+    return ((vars.watchers["options"].Current & 7) == 1 &&
+        vars.watchers["menuSelection"].Current == 1 &&
+        vars.watchers["inputPressed"].Current == 1 &&
+        vars.watchers["inMenu"].Current == 0);
 }
 
 split
