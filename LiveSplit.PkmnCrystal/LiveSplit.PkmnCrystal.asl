@@ -85,6 +85,7 @@ startup
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x147B)) { Name = "playerID" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FCC)) { Name = "options" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0F74)) { Name = "menuSelection" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FBC)) { Name = "gameTimerPaused" },
 
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
             new MemoryWatcher<byte>(hramOffset + 0x58) { Name = "hOAMUpdate"},
@@ -165,7 +166,8 @@ start
     return ((vars.watchers["options"].Current & 7) == 1 &&
         vars.watchers["menuSelection"].Current == 1 &&
         vars.watchers["inputPressed"].Current == 1 &&
-        vars.watchers["inMenu"].Current == 0);
+        vars.watchers["inMenu"].Current == 0 &&
+        vars.watchers["gameTimerPaused"].Current == 0);
 }
 
 split
