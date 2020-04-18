@@ -87,8 +87,6 @@ startup
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0F74)) { Name = "menuSelection" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FBC)) { Name = "gameTimerPaused" },
 
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x02DD)) { Name = "scriptVar" },
-
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
             new MemoryWatcher<byte>(rLCDC) { Name = "rLCDC" },
             new MemoryWatcher<byte>(hramOffset + 0x58) { Name = "hOAMUpdate"},
