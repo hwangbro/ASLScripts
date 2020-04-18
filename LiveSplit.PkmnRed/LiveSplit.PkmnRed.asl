@@ -100,10 +100,6 @@ startup
             new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1FD7)) { Name = "hofFade" },
             new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1FFD)) { Name = "stack" },
 
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1186)) { Name = "DV1" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1187)) { Name = "DV2" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1A45)) { Name = "wFrames" },
-
             new MemoryWatcher<byte>(hramOffset + 0x34) { Name = "input" },
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
         };
@@ -161,7 +157,6 @@ init
 update
 {
     vars.watchers.UpdateAll(game);
-    print("Squirtle DVs: " + vars.watchers["DV1"].Current.ToString("X2") + vars.watchers["DV2"].Current.ToString("X2"));
 }
 
 start

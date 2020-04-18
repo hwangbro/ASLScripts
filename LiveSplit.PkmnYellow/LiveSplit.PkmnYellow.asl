@@ -98,21 +98,21 @@ startup
         return new Dictionary<string, Dictionary<string, uint>>
         {
             { "nidoran", new Dictionary<string, uint> { { "mapIndex", 0x32u }, { "playerPos", 0x032Bu } } },
-            { "nuggetBridge", new Dictionary<string, uint> { { "opponentName", 0x8A828E91 }, { "mapIndex", 0x23u }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "silphGiovanni", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0xEBu }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym1", new Dictionary<string, uint> { { "opponentName", 0x828E9181 }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym2", new Dictionary<string, uint> { { "opponentName", 0x9392888C }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym3", new Dictionary<string, uint> { { "opponentName", 0x92E8938B }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym4", new Dictionary<string, uint> { { "opponentName", 0x8A889184 }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym5", new Dictionary<string, uint> { { "opponentName", 0x80868E8A }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym6", new Dictionary<string, uint> { { "opponentName", 0x91818092 }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym7", new Dictionary<string, uint> { { "opponentName", 0x88808B81 }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "gym8", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0x2Du }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
-            { "elite4_1", new Dictionary<string, uint> { { "opponentName", 0x84918E8B }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } }, //{ "mapIndex", 0xF5u }
-            { "elite4_2", new Dictionary<string, uint> { { "opponentName", 0x8D949181 }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } }, //{ "mapIndex", 0xF6u }
-            { "elite4_3", new Dictionary<string, uint> { { "opponentName", 0x93808680 }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } }, //{ "mapIndex", 0xF7u }
-            { "elite4_4", new Dictionary<string, uint> { { "opponentName", 0x828D808B }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } }, //{ "mapIndex", 0x71u }
-            { "elite4_5", new Dictionary<string, uint> { { "enemyPkmnName", 0x91808B85 }, { "mapIndex", 0x78u }, { "enemyPkmn", 0u }, { "stack", 0x0454u } } },
+            { "nuggetBridge", new Dictionary<string, uint> { { "opponentName", 0x8A828E91 }, { "mapIndex", 0x23u }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "silphGiovanni", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0xEBu }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym1", new Dictionary<string, uint> { { "opponentName", 0x828E9181 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym2", new Dictionary<string, uint> { { "opponentName", 0x9392888C }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym3", new Dictionary<string, uint> { { "opponentName", 0x92E8938B }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym4", new Dictionary<string, uint> { { "opponentName", 0x8A889184 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym5", new Dictionary<string, uint> { { "opponentName", 0x80868E8A }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym6", new Dictionary<string, uint> { { "opponentName", 0x91818092 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym7", new Dictionary<string, uint> { { "opponentName", 0x88808B81 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "gym8", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0x2Du }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+            { "elite4_1", new Dictionary<string, uint> { { "opponentName", 0x84918E8B }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0xF5u }
+            { "elite4_2", new Dictionary<string, uint> { { "opponentName", 0x8D949181 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0xF6u }
+            { "elite4_3", new Dictionary<string, uint> { { "opponentName", 0x93808680 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0xF7u }
+            { "elite4_4", new Dictionary<string, uint> { { "opponentName", 0x828D808B }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0x71u }
+            { "elite4_5", new Dictionary<string, uint> { { "enemyPkmnName", 0x91808B85 }, { "mapIndex", 0x78u }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
 
             { "rival", new Dictionary<string, uint> { { "mapIndex", 0u }, { "partyCount", 1u } } },
             { "enterMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x3Bu }, { "playerPos", 0x1205u } } },

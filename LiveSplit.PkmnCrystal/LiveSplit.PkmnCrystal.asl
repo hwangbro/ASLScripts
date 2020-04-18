@@ -65,7 +65,7 @@ startup
             var wramOffset = scanOffset - 0x10;
             print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
 
-            vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443));
+            vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443), (IntPtr)(scanOffset + 0x143C));
 
             return true;
         }
@@ -73,7 +73,7 @@ startup
         return false;
     });
 
-    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) =>
+    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP, rLCDC) =>
     {
         return new MemoryWatcherList
         {
@@ -87,7 +87,10 @@ startup
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0F74)) { Name = "menuSelection" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FBC)) { Name = "gameTimerPaused" },
 
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x02DD)) { Name = "scriptVar" },
+
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
+            new MemoryWatcher<byte>(rLCDC) { Name = "rLCDC" },
             new MemoryWatcher<byte>(hramOffset + 0x58) { Name = "hOAMUpdate"},
             new MemoryWatcher<byte>(hramOffset + 0x24) { Name = "inputPressed" },
             new MemoryWatcher<byte>(hramOffset + 0x2A) { Name = "inMenu" },
@@ -98,30 +101,30 @@ startup
     {
         return new Dictionary<string, Dictionary<string, uint>>
         {
-            { "falkner", new Dictionary<string, uint> { { "opponentClass", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "bugsy", new Dictionary<string, uint> { { "opponentClass", 3u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "whitney", new Dictionary<string, uint> { { "opponentClass", 2u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "rival3", new Dictionary<string, uint> { { "opponentClass", 9u }, { "trainerID", 7u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "morty", new Dictionary<string, uint> { { "opponentClass", 4u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "chuck", new Dictionary<string, uint> { { "opponentClass", 7u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "pryce", new Dictionary<string, uint> { { "opponentClass", 5u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "jasmine", new Dictionary<string, uint> { { "opponentClass", 6u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "rival4", new Dictionary<string, uint> { { "opponentClass", 9u }, { "trainerID", 10u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "radioTower", new Dictionary<string, uint> { { "opponentClass", 0x33u }, { "trainerID", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "clair", new Dictionary<string, uint> { { "opponentClass", 8u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "will", new Dictionary<string, uint> { { "opponentClass", 0x0Bu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "koga", new Dictionary<string, uint> { { "opponentClass", 0x0Fu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "bruno", new Dictionary<string, uint> { { "opponentClass", 0x0Du }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "karen", new Dictionary<string, uint> { { "opponentClass", 0x0Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "lance", new Dictionary<string, uint> { { "opponentClass", 0x10u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "misty", new Dictionary<string, uint> { { "opponentClass", 0x12u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "surge", new Dictionary<string, uint> { { "opponentClass", 0x13u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "blaine", new Dictionary<string, uint> { { "opponentClass", 0x2Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "janine", new Dictionary<string, uint> { { "opponentClass", 0x1Au }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "erika", new Dictionary<string, uint> { { "opponentClass", 0x15u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "sabrina", new Dictionary<string, uint> { { "opponentClass", 0x23u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "brock", new Dictionary<string, uint> { { "opponentClass", 0x11u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "falkner", new Dictionary<string, uint> { { "opponentClass", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "bugsy", new Dictionary<string, uint> { { "opponentClass", 3u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "whitney", new Dictionary<string, uint> { { "opponentClass", 2u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "rival3", new Dictionary<string, uint> { { "opponentClass", 9u }, { "trainerID", 7u }, { "battleResult", 0u }, { "battleEnded", 1u },{ "rLCDC", 0x63u },  { "rBGP", 0u } } },
+            { "morty", new Dictionary<string, uint> { { "opponentClass", 4u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "chuck", new Dictionary<string, uint> { { "opponentClass", 7u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "pryce", new Dictionary<string, uint> { { "opponentClass", 5u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "jasmine", new Dictionary<string, uint> { { "opponentClass", 6u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "rival4", new Dictionary<string, uint> { { "opponentClass", 9u }, { "trainerID", 10u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "radioTower", new Dictionary<string, uint> { { "opponentClass", 0x33u }, { "trainerID", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "clair", new Dictionary<string, uint> { { "opponentClass", 8u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "will", new Dictionary<string, uint> { { "opponentClass", 0x0Bu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "koga", new Dictionary<string, uint> { { "opponentClass", 0x0Fu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "bruno", new Dictionary<string, uint> { { "opponentClass", 0x0Du }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "karen", new Dictionary<string, uint> { { "opponentClass", 0x0Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "lance", new Dictionary<string, uint> { { "opponentClass", 0x10u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "misty", new Dictionary<string, uint> { { "opponentClass", 0x12u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "surge", new Dictionary<string, uint> { { "opponentClass", 0x13u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "blaine", new Dictionary<string, uint> { { "opponentClass", 0x2Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "janine", new Dictionary<string, uint> { { "opponentClass", 0x1Au }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "erika", new Dictionary<string, uint> { { "opponentClass", 0x15u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "sabrina", new Dictionary<string, uint> { { "opponentClass", 0x23u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
+            { "brock", new Dictionary<string, uint> { { "opponentClass", 0x11u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rLCDC", 0x63u }, { "rBGP", 0u } } },
             { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "battleEnded", 22u }, { "tileMap", 0x16u }, { "hOAMUpdate", 0u } } },
         };
     });
