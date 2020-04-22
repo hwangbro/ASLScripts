@@ -2,8 +2,7 @@ state("gambatte_qt") {}
 state("gambatte") {}
 state("gambatte_speedrun") {}
 
-startup
-{
+startup {
     //-------------------------------------------------------------//
     settings.Add("isaac", true, "Isaac");
     settings.Add("nikki", true, "Nikki");
@@ -23,31 +22,27 @@ startup
 
     refreshRate = 0.5;
 
-    vars.timer_OnStart = (EventHandler)((s, e) =>
-    {
+    vars.timer_OnStart = (EventHandler)((s, e) => {
         vars.splits = vars.GetSplitList();
     });
     timer.OnStart += vars.timer_OnStart;
 
-    vars.TryFindOffsets = (Func<Process, bool>)((proc) =>
-    {
+    vars.TryFindOffsets = (Func<Process, bool>)((proc) => {
         print("[Autosplitter] Scanning memory");
         var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
 
         int scanOffset = 0;
-        foreach (var page in proc.MemoryPages())
-        {
+        foreach (var page in proc.MemoryPages()) {
             var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((scanOffset = (int)scanner.Scan(target)) != 0)
+            if ((scanOffset = (int)scanner.Scan(target)) != 0) {
                 break;
+            }
         }
 
-        if (scanOffset != 0)
-        {
+        if (scanOffset != 0) {
             var wramOffset = scanOffset - 0x10;
-            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
-
             vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443));
+            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
 
             return true;
         }
@@ -55,10 +50,8 @@ startup
         return false;
     });
 
-    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) =>
-    {
-        return new MemoryWatcherList
-        {
+    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) => {
+        return new MemoryWatcherList {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C05)) { Name = "whoseTurn"},
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C07)) { Name = "duelFinished"},
             new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x0C16)) { Name = "opponentName" },
@@ -72,10 +65,8 @@ startup
         };
     });
 
-    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() =>
-    {
-        return new Dictionary<string, Dictionary<string, uint>>
-        {
+    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
+        return new Dictionary<string, Dictionary<string, uint>> {
             { "isaac", new Dictionary<string, uint> { { "opponentName", 0x03C3u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "nikki", new Dictionary<string, uint> { { "opponentName", 0x03C7u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "amy", new Dictionary<string, uint> { { "opponentName", 0x03BFu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
@@ -94,42 +85,36 @@ startup
     });
 }
 
-init
-{
+init {
     vars.watchers = new MemoryWatcherList();
     vars.splits = new Dictionary<string, Dictionary<string, uint>>();
 
-    if (!vars.TryFindOffsets(game))
+    if (!vars.TryFindOffsets(game)) {
         throw new Exception("Emulated memory not yet initialized.");
-    else
+    } else {
         refreshRate = 200/3.0;
+    }
 }
 
-update
-{
+update {
     vars.watchers.UpdateAll(game);
 }
 
-start
-{
+start {
     return vars.watchers["cursorXPos"].Current == 0x01 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["curSongID"].Old == 0x86 && vars.watchers["curMenuItem"].Current == 0x1;
 }
 
-split
-{
-    foreach (var _split in vars.splits)
-    {
-        if (settings[_split.Key])
-        {
+split {
+    foreach (var _split in vars.splits) {
+        if (settings[_split.Key]) {
             var count = 0;
-            foreach (var _condition in _split.Value)
-            {
-                if (vars.watchers[_condition.Key].Current == _condition.Value)
+            foreach (var _condition in _split.Value) {
+                if (vars.watchers[_condition.Key].Current == _condition.Value) {
                     count++;
+                }
             }
 
-            if (count == _split.Value.Count)
-            {
+            if (count == _split.Value.Count) {
                 print("[Autosplitter] Split: " + _split.Key);
                 vars.splits.Remove(_split.Key);
                 return true;
@@ -138,12 +123,10 @@ split
     }
 }
 
-exit
-{
+exit {
     refreshRate = 0.5;
 }
 
-shutdown
-{
+shutdown {
     timer.OnStart -= vars.timer_OnStart;
 }

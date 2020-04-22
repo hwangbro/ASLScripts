@@ -166,6 +166,7 @@ split {
             foreach (var _condition in _split.Value) {
                 if (vars.watchers[_condition.Key].Current == _condition.Value) {
                     count++;
+                }
             }
 
             if (count == _split.Value.Count) {

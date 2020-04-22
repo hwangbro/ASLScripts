@@ -3,8 +3,7 @@ state("gambatte_qt") {}
 state("gambatte_qt_nonpsr") {}
 state("gambatte_speedrun") {}
 
-startup
-{
+startup {
     //-------------------------------------------------------------//
     settings.Add("all", true, "Glichless Any%");
     settings.CurrentDefaultParent = "all";
@@ -38,33 +37,29 @@ startup
 
     refreshRate = 0.5;
 
-    vars.timer_OnStart = (EventHandler)((s, e) =>
-    {
+    vars.timer_OnStart = (EventHandler)((s, e) => {
         vars.lastTrainer = 0;
         vars.endTriggered = false;
         vars.splits = vars.GetSplitList();
     });
     timer.OnStart += vars.timer_OnStart;
 
-    vars.TryFindOffsets = (Func<Process, bool>)((proc) =>
-    {
+    vars.TryFindOffsets = (Func<Process, bool>)((proc) => {
         print("[Autosplitter] Scanning memory");
         var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
 
         int scanOffset = 0;
-        foreach (var page in proc.MemoryPages())
-        {
+        foreach (var page in proc.MemoryPages()) {
             var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((scanOffset = (int)scanner.Scan(target)) != 0)
+            if ((scanOffset = (int)scanner.Scan(target)) != 0) {
                 break;
+            }
         }
 
-        if (scanOffset != 0)
-        {
+        if (scanOffset != 0) {
             var wramOffset = scanOffset - 0x10;
-            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
-
             vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443));
+            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
 
             return true;
         }
@@ -72,10 +67,8 @@ startup
         return false;
     });
 
-    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) =>
-    {
-        return new MemoryWatcherList
-        {
+    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) => {
+        return new MemoryWatcherList {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1118)) { Name = "opponentClass" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C12)) { Name = "battleEnded" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FE9)) { Name = "battleResult" },
@@ -94,10 +87,8 @@ startup
         };
     });
 
-    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() =>
-    {
-        return new Dictionary<string, Dictionary<string, uint>>
-        {
+    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
+        return new Dictionary<string, Dictionary<string, uint>> {
             { "falkner", new Dictionary<string, uint> { { "opponentClass", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "bugsy", new Dictionary<string, uint> { { "opponentClass", 3u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "whitney", new Dictionary<string, uint> { { "opponentClass", 2u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
@@ -126,42 +117,40 @@ startup
     });
 }
 
-init
-{
+init {
     vars.lastTrainer = 0;
     vars.endTriggered = false;
 
     vars.watchers = new MemoryWatcherList();
     vars.splits = new Dictionary<string, Dictionary<string, uint>>();
 
-    if (!vars.TryFindOffsets(game))
+    if (!vars.TryFindOffsets(game)) {
         throw new Exception("Emulated memory not yet initialized.");
-    else
+    } else {
         refreshRate = 200/3.0;
+    }
 }
 
-update
-{
+update {
     vars.watchers.UpdateAll(game);
-    if (vars.watchers["opponentClass"].Current != vars.watchers["opponentClass"].Old)
+    if (vars.watchers["opponentClass"].Current != vars.watchers["opponentClass"].Old) {
         vars.lastTrainer = vars.watchers["opponentClass"].Old;
+    }
 
     // reset lastTrainer if hard/soft reset
-    if (vars.watchers["playerID"].Current == 0)
-    {
+    if (vars.watchers["playerID"].Current == 0) {
         vars.lastTrainer = 0;
     }
 
     // TO-DO: find cleaner method to check for red textbox than using endTriggered bit
-    if (vars.lastTrainer == 63)
-    {
-        if(vars.watchers["hOAMUpdate"].Current == 1 && vars.watchers["tileMap"].Old == 121 && vars.watchers["tileMap"].Current == 22)
+    if (vars.lastTrainer == 63) {
+        if(vars.watchers["hOAMUpdate"].Current == 1 && vars.watchers["tileMap"].Old == 121 && vars.watchers["tileMap"].Current == 22) {
             vars.endTriggered = true;
+        }
     }
 }
 
-start
-{
+start {
     return ((vars.watchers["options"].Current & 7) == 1 &&
         vars.watchers["menuSelection"].Current == 1 &&
         vars.watchers["inputPressed"].Current == 1 &&
@@ -169,27 +158,24 @@ start
         vars.watchers["gameTimerPaused"].Current == 0);
 }
 
-split
-{
-    foreach (var _split in vars.splits)
-    {
-        if (settings[_split.Key])
-        {
+split {
+    foreach (var _split in vars.splits) {
+        if (settings[_split.Key]) {
             var count = 0;
-            foreach (var _condition in _split.Value)
-            {
-                if (vars.watchers[_condition.Key].Current == _condition.Value)
+            foreach (var _condition in _split.Value) {
+                if (vars.watchers[_condition.Key].Current == _condition.Value) {
                     count++;
-                else if (_condition.Key == "opponentClass" && _condition.Value == vars.lastTrainer)
+                } else if (_condition.Key == "opponentClass" && _condition.Value == vars.lastTrainer) {
                     count++;
-                else if (_split.Key == "red" && _condition.Key == "battleEnded" && vars.endTriggered)
+                } else if (_split.Key == "red" && _condition.Key == "battleEnded" && vars.endTriggered) {
                     count++;
+                }
             }
 
-            if (count == _split.Value.Count)
-            {
-                if (_split.Key == "red" && !vars.endTriggered)
+            if (count == _split.Value.Count) {
+                if (_split.Key == "red" && !vars.endTriggered) {
                     continue; //skip the first occurance of the split conditions for red
+                }
                 print("[Autosplitter] Split: " + _split.Key);
                 vars.splits.Remove(_split.Key);
                 return true;
@@ -198,12 +184,10 @@ split
     }
 }
 
-exit
-{
+exit {
     refreshRate = 0.5;
 }
 
-shutdown
-{
+shutdown {
     timer.OnStart -= vars.timer_OnStart;
 }
