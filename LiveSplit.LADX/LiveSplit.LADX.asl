@@ -3,10 +3,10 @@ state("bgb64") {}
 state("gambatte") {}
 state("gambatte_qt") {}
 state("gambatte_qt_nonpsr") {}
+state("gambatte_speedrun") {}
 state("emuhawk") {}
 
-startup
-{
+startup {
     //-------------------------------------------------------------//
     settings.Add("entrances", true, "Dungeon Entrances");
     settings.Add("instruments", true, "Dungeon Ends (Instruments)");
@@ -71,129 +71,75 @@ startup
 
     refreshRate = 0.5;
 
-    vars.TryFindOffsets = (Func<Process, int, long, bool>)((proc, memorySize, baseAddress) => 
-    {
-        var oldStates = new Dictionary<int, int>
-        {
-            { 1691648, 0x55BC7C },  //BGB 1.5.1
-            { 1699840, 0x55DCA0 },  //BGB 1.5.2
-            { 1736704, 0x564EBC },  //BGB 1.5.3/1.5.4
-            { 1740800, 0x566EDC },  //BGB 1.5.5/1.5.6
-            { 5656576, 0 },         //gambatte r571
-            { 14290944, 0 },        //GSR r600
-            { 14180352, 0 },        //GSR r604/614
-            { 14209024, 0 },        //GSR r649
-            { 6578176, 0 },         //BizHawk 2.2
-            { 6586368, 0 },         //BizHawk 2.2.1
-            { 6627328, 0 },         //BizHawk 2.2.2
-            { 7061504, 0 },         //BizHawk 2.3
-            { 7249920, 0 },         //BizHawk 2.3.1
-        };
-
-        var currentStates = new Dictionary<int, int>
-        {
-            { 1769472, 0x56CF14 },  //BGB 1.5.7
-            { 4632576, 0x803100 },  //BGB 1.5.7 (x64)
-            { 14544896, 0 },        //GSR r664
-            { 6938624, 0 },         //BizHawk 2.3.2
-        };
-
-        int ptrOffset;
-        if (currentStates.TryGetValue(memorySize, out ptrOffset))
-        {
-            long romOffset = 0;
-            long wramOffset = 0;
-
-            var state = proc.ProcessName.ToLower();
-            if (state.Contains("gambatte"))
-            {
-                var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
-
-                var scanOffset = vars.SigScan(proc, target);
-                if (scanOffset != 0)
-                {
-                    romOffset = scanOffset - 0x18;
-                    wramOffset = scanOffset - 0x10;
-                }
-            }
-            else if (state == "emuhawk")
-            {
-                var target = new SigScanTarget(0, "05 00 00 00 ?? 00 00 00 00 ?? ?? 00 ?? 40 ?? 00 00 ?? ?? 00 00 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 ?? ?? ?? 00 ?? 00 00 00 00 00 ?? 00 ?? 00 00 00 00 00 00 00 ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00 00");
-
-                var scanOffset = vars.SigScan(proc, target);
-                if (scanOffset != 0)
-                {
-                    romOffset = scanOffset - 0x50;
-                    wramOffset = scanOffset - 0x40;
-                }
-            }
-            else if (state == "bgb")
-            {
-                romOffset = proc.ReadValue<int>(proc.ReadPointer((IntPtr)ptrOffset) + 0x34) + 0x10;
-                wramOffset = proc.ReadValue<int>(proc.ReadPointer((IntPtr)ptrOffset) + 0x34) + 0x108;
-            }
-            else if (state == "bgb64")
-            {
-                romOffset = proc.ReadValue<int>(proc.ReadPointer((IntPtr)ptrOffset) + 0x44) + 0x18;
-                wramOffset = proc.ReadValue<int>(proc.ReadPointer((IntPtr)ptrOffset) + 0x44) + 0x190;
-            }
-
-            if (proc.ReadValue<int>((IntPtr)romOffset) != 0)
-            {
-                print("[Autosplitter] ROM Pointer: " + romOffset.ToString("X8"));
-                print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
-                
-                vars.watchers = vars.GetWatcherList((int)(romOffset - baseAddress), (int)(wramOffset - baseAddress));
-                vars.watchers["version"].Update(proc);
-                print(string.Format("[Autosplitter] Game Version: {0}", (vars.watchers["version"].Current == 0x80) ? "LADX" : "LA"));
-                
-                vars.GetSplitList(); //calling now will prevent lag on first timer start
-
-                return true;
-            }
+    vars.TryFindOffsets = (Func<Process, int, long, bool>)((proc, memorySize, baseAddress) => {
+        long romOffset = 0;
+        long wramOffset = 0;
+        string state = proc.ProcessName.ToLower();
+        if (state.Contains("gambatte")) {
+            IntPtr scanOffset = vars.SigScan(proc, 0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
+            romOffset = (long)scanOffset - 0x18;
+            wramOffset = (long)scanOffset - 0x10;
+        } else if (state == "emuhawk") {
+            IntPtr scanOffset = vars.SigScan(proc, 0, "05 00 00 00 ?? 00 00 00 00 ?? ?? 00 ?? 40 ?? 00 00 ?? ?? 00 00 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 ?? ?? ?? 00 ?? 00 00 00 00 00 ?? 00 ?? 00 00 00 00 00 00 00 ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00 00");
+            romOffset = (long)scanOffset - 0x50;
+            wramOffset = (long)scanOffset - 0x40;
+        } else if (state == "bgb") {
+            IntPtr scanOffset = vars.SigScan(proc, 12, "6D 61 69 6E 6C 6F 6F 70 83 C4 F4 A1 ?? ?? ?? ??");
+            var sharedOffset = new DeepPointer(scanOffset, 0, 0, 0x34).Deref<int>(proc);
+            romOffset = sharedOffset + 0x10;
+            wramOffset = sharedOffset + 0x108;
+        } else if (state == "bgb64") {
+            IntPtr scanOffset = vars.SigScan(proc, 20, "48 83 EC 28 48 8B 05 ?? ?? ?? ?? 48 83 38 00 74 1A 48 8B 05 ?? ?? ?? ?? 48 8B 00 80 B8 ?? ?? ?? ?? 00 74 07");
+            IntPtr baseOffset = scanOffset + proc.ReadValue<int>(scanOffset) + 4;
+            var sharedOffset = new DeepPointer(baseOffset, 0, 0x44).Deref<int>(proc);
+            romOffset = sharedOffset + 0x18;
+            wramOffset = sharedOffset + 0x190;
         }
-        else if (oldStates.ContainsKey(memorySize))
-            MessageBox.Show("The autosplitter detects an outdated emulator.\nPlease update your emulator to the newest version.", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
+        if (proc.ReadValue<int>((IntPtr)romOffset) != 0) {
+            vars.watchers = vars.GetWatcherList((int)(romOffset - baseAddress), (int)(wramOffset - baseAddress));
+            vars.GetSplitList(); //calling now will prevent lag on first timer start
+
+            vars.watchers["version"].Update(proc);
+            print(string.Format("[Autosplitter] Game Version: {0}", (vars.watchers["version"].Current == 0x80) ? "LADX" : "LA"));
+            print("[Autosplitter] ROM Pointer: " + romOffset.ToString("X8"));
+            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
+            
+            return true;
+        }
+        
         return false;
     });
 
-    vars.SigScan = (Func<Process, SigScanTarget, long>)((proc, target) =>
-    {
-        print("[Autosplitter] Scanning memory");
-
-        long result = 0;
-        foreach (var page in proc.MemoryPages())
-        {
+    vars.SigScan = (Func<Process, int, string, IntPtr>)((proc, offset, signature) => {
+        var target = new SigScanTarget(offset, signature);
+        IntPtr result = IntPtr.Zero;
+        foreach (var page in proc.MemoryPages(true)) {
             var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((result = (long)scanner.Scan(target)) != 0)
+            if ((result = scanner.Scan(target)) != IntPtr.Zero) {
                 break;
+            }
         }
 
         return result;
     });
 
-    vars.Current = (Func<string, int, bool>)((name, value) => 
-    {
+    vars.Current = (Func<string, int, bool>)((name, value) => {
         return vars.watchers[name].Current == value;
     });
 
-    vars.Changed = (Func<string, int, bool>)((name, value) => 
-    {
+    vars.Changed = (Func<string, int, bool>)((name, value) => {
         return vars.watchers[name].Changed && vars.watchers[name].Current == value;
     });
 
-    vars.Instrument = (Func<int, bool>)((index) => 
-    {
+    vars.Instrument = (Func<int, bool>)((index) => {
         var flags = vars.watchers["dungeonFlags"].Current;
         var dungeon = BitConverter.GetBytes(flags)[index];
         return ((dungeon >> 1) & 1) == 1;
     });
 
-    vars.GetWatcherList = (Func<int, int, MemoryWatcherList>)((romOffset, wramOffset) =>
-    {
-        return new MemoryWatcherList
-        {
+    vars.GetWatcherList = (Func<int, int, MemoryWatcherList>)((romOffset, wramOffset) => {
+        return new MemoryWatcherList {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x03B0)) { Name = "objectState" },
             new MemoryWatcher<long>(new DeepPointer(wramOffset, 0x1B65)) { Name = "dungeonFlags" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1B54)) { Name = "overworldScreen" },
@@ -219,10 +165,8 @@ startup
         };
     });
 
-    vars.GetSplitList = (Func<Dictionary<string, bool>>)(() =>
-    {
-        var splits = new Dictionary<string, bool>
-        {
+    vars.GetSplitList = (Func<Dictionary<string, bool>>)(() => {
+        var splits = new Dictionary<string, bool> {
             { "d1Enter", vars.Current("submapScreen", 0x3B) && vars.Current("overworldScreen", 0xD3) },
             { "d2Enter", vars.Current("submapIndex", 0x01) && vars.Current("submapScreen", 0x3A) },
             { "d3Enter", vars.Current("submapIndex", 0x02) && vars.Current("submapScreen", 0x39) },
@@ -266,8 +210,7 @@ startup
             { "creditsWarp", vars.Current("gameState", 0x0101) },
         };
 
-        if (vars.watchers["version"].Current == 0) //LA
-        {
+        if (vars.watchers["version"].Current == 0) { //LA
             splits.Add("d1End", vars.Current("music", 0x05) && vars.Instrument(0));
             splits.Add("d2End", vars.Current("music", 0x05) && vars.Instrument(1));
             splits.Add("d3End", vars.Current("music", 0x05) && vars.Instrument(2));
@@ -276,9 +219,7 @@ startup
             splits.Add("d6End", vars.Current("music", 0x05) && vars.Instrument(5));
             splits.Add("d7End", vars.Current("music", 0x06) && vars.Instrument(6));
             splits.Add("d8End", vars.Current("music", 0x06) && vars.Instrument(7));
-        }
-        else if (vars.watchers["version"].Current == 0x80) //LADX
-        {
+        } else if (vars.watchers["version"].Current == 0x80) { //LADX
             splits.Add("d1End", vars.Current("music", 0x0B) && vars.Current("submapIndex", 0x00));
             splits.Add("d2End", vars.Current("music", 0x0B) && vars.Current("submapIndex", 0x01));
             splits.Add("d3End", vars.Current("music", 0x0B) && vars.Current("submapIndex", 0x02));
@@ -293,43 +234,38 @@ startup
     });
 }
 
-init
-{
+init {
     vars.watchers = new MemoryWatcherList();
     vars.pastSplits = new HashSet<string>();
 
-    if (!vars.TryFindOffsets(game, modules.First().ModuleMemorySize, (long)modules.First().BaseAddress))
-        throw new Exception("Emulated memory not yet initialized.");
-    else
+    if (!vars.TryFindOffsets(game, modules.First().ModuleMemorySize, (long)modules.First().BaseAddress)) {
+        throw new Exception("[Autosplitter] Emulated memory not yet initialized.");
+    } else {
         refreshRate = 200/3.0;
+    }
 }
 
-update
-{
-    if (timer.CurrentPhase == TimerPhase.NotRunning && vars.pastSplits.Count > 0)
+update {
+    if (timer.CurrentPhase == TimerPhase.NotRunning && vars.pastSplits.Count > 0) {
         vars.pastSplits.Clear();
+    }
     
     vars.watchers.UpdateAll(game);
 }
 
-start
-{
+start {
     return vars.watchers["gameState"].Current == 0x0902;
 }
 
-reset
-{
+reset {
     return vars.watchers["resetCheck"].Current > 0;
 }
 
-split
-{
+split {
     var splits = vars.GetSplitList();
 
-    foreach (var split in splits)
-    {
-        if (settings[split.Key] && split.Value && !vars.pastSplits.Contains(split.Key))
-        {
+    foreach (var split in splits) {
+        if (settings[split.Key] && split.Value && !vars.pastSplits.Contains(split.Key)) {
             vars.pastSplits.Add(split.Key);
             print("[Autosplitter] Split: " + split.Key);
             return true;
@@ -337,7 +273,6 @@ split
     }
 }
 
-exit
-{
+exit {
     refreshRate = 0.5;
 }

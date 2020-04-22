@@ -3,10 +3,10 @@ state("bgb64") {}
 state("gambatte") {}
 state("gambatte_qt") {}
 state("gambatte_qt_nonpsr") {}
+state("gambatte_speedrun") {}
 state("emuhawk") {}
 
-startup
-{
+startup {
     //-------------------------------------------------------------//
     settings.Add("entrances", true, "Dungeon Entrance Splits");
     settings.Add("essences", true, "Dungeon End Splits (Essences)");
@@ -44,81 +44,54 @@ startup
 
     refreshRate = 0.5;
 
-    vars.timer_OnStart = (EventHandler)((s, e) =>
-    {
+    vars.timer_OnStart = (EventHandler)((s, e) => {
         vars.splits = vars.GetSplitList();
     });
     timer.OnStart += vars.timer_OnStart;
 
-    vars.TryFindOffsets = (Func<Process, int, long, bool>)((proc, memorySize, baseAddress) => 
-    {
-        var states = new Dictionary<int, int>
-        {
-            { 1769472, 0x56CF14 },  //BGB 1.5.7
-            { 4632576, 0x803100 },  //BGB 1.5.7 (x64)
-            { 14544896, 0 },        //GSR r664
-            { 6938624, 0 },         //BizHawk 2.3.2
-        };
+    vars.TryFindOffsets = (Func<Process, int, long, bool>)((proc, memorySize, baseAddress) => {
+        long wramOffset = 0;
+        string state = proc.ProcessName.ToLower();
+        if (state.Contains("gambatte")) {
+            IntPtr scanOffset = vars.SigScan(proc, 0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
+            wramOffset = (long)scanOffset - 0x10;
+        } else if (state == "emuhawk") {
+            IntPtr scanOffset = vars.SigScan(proc, 0, "05 00 00 00 ?? 00 00 00 00 ?? ?? 00 ?? 40 ?? 00 00 ?? ?? 00 00 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 ?? ?? ?? 00 ?? 00 00 00 00 00 ?? 00 ?? 00 00 00 00 00 00 00 ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00 00");
+            wramOffset = (long)scanOffset - 0x40;
+        } else if (state == "bgb") {
+            IntPtr scanOffset = vars.SigScan(proc, 12, "6D 61 69 6E 6C 6F 6F 70 83 C4 F4 A1 ?? ?? ?? ??");
+            wramOffset = new DeepPointer(scanOffset, 0, 0, 0x34).Deref<int>(proc) + 0x108;
+        } else if (state == "bgb64") {
+            IntPtr scanOffset = vars.SigScan(proc, 20, "48 83 EC 28 48 8B 05 ?? ?? ?? ?? 48 83 38 00 74 1A 48 8B 05 ?? ?? ?? ?? 48 8B 00 80 B8 ?? ?? ?? ?? 00 74 07");
+            IntPtr baseOffset = scanOffset + proc.ReadValue<int>(scanOffset) + 4;
+            wramOffset = new DeepPointer(baseOffset, 0, 0x44).Deref<int>(proc) + 0x190;
+        }
 
-        int ptrOffset;
-        if (states.TryGetValue(memorySize, out ptrOffset))
-        {
-            long wramOffset = 0;
-
-            var state = proc.ProcessName.ToLower();
-            if (state.Contains("gambatte"))
-            {
-                var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
-
-                var scanOffset = vars.SigScan(proc, target);
-                if (scanOffset != 0)
-                    wramOffset = scanOffset - 0x10;
-            }
-            else if (state == "emuhawk")
-            {
-                var target = new SigScanTarget(0, "05 00 00 00 ?? 00 00 00 00 ?? ?? 00 ?? 40 ?? 00 00 ?? ?? 00 00 00 00 00 ?? 00 00 00 00 00 00 00 00 00 00 00 ?? ?? ?? 00 ?? 00 00 00 00 00 ?? 00 ?? 00 00 00 00 00 00 00 ?? ?? ?? ?? ?? ?? 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 F8 00 00 00");
-
-                var scanOffset = vars.SigScan(proc, target);
-                if (scanOffset != 0)
-                    wramOffset = scanOffset - 0x40;
-            }
-            else if (state == "bgb")
-                wramOffset = proc.ReadValue<int>(proc.ReadPointer((IntPtr)ptrOffset) + 0x34) + 0x108;
-            else if (state == "bgb64")
-                wramOffset = proc.ReadValue<int>(proc.ReadPointer((IntPtr)ptrOffset) + 0x44) + 0x190;
-
-            if (proc.ReadValue<int>(proc.ReadPointer((IntPtr)wramOffset)) != 0)
-            {
-                print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
-
-                vars.watchers = vars.GetWatcherList((int)(wramOffset - baseAddress));
-
-                return true;
-            }
+        if (wramOffset > 0) {
+            vars.watchers = vars.GetWatcherList((int)(wramOffset - baseAddress));
+            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
+            
+            return true;
         }
 
         return false;
     });
 
-    vars.SigScan = (Func<Process, SigScanTarget, long>)((proc, target) =>
-    {
-        print("[Autosplitter] Scanning memory");
-
-        long result = 0;
-        foreach (var page in proc.MemoryPages())
-        {
+    vars.SigScan = (Func<Process, int, string, IntPtr>)((proc, offset, signature) => {
+        var target = new SigScanTarget(offset, signature);
+        IntPtr result = IntPtr.Zero;
+        foreach (var page in proc.MemoryPages(true)) {
             var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((result = (long)scanner.Scan(target)) != 0)
+            if ((result = scanner.Scan(target)) != IntPtr.Zero) {
                 break;
+            }
         }
 
         return result;
     });
 
-    vars.GetWatcherList = (Func<int, MemoryWatcherList>)((wramOffset) =>
-    {
-        return new MemoryWatcherList
-        {
+    vars.GetWatcherList = (Func<int, MemoryWatcherList>)((wramOffset) => {
+        return new MemoryWatcherList {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x91C)) { Name = "d1Enter" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x939)) { Name = "d2Enter" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x94B)) { Name = "d3Enter" },
@@ -145,10 +118,8 @@ startup
         };
     });
 
-    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, int>>>)(() =>
-    {
-        return new Dictionary<string, Dictionary<string, int>>
-        {
+    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, int>>>)(() => {
+        return new Dictionary<string, Dictionary<string, int>> {
             { "d1Enter", new Dictionary<string, int> { {"d1Enter", 0x10} } },
             { "d2Enter", new Dictionary<string, int> { {"d2Enter", 0x10} } },
             { "d3Enter", new Dictionary<string, int> { {"d3Enter", 0x10} } },
@@ -173,52 +144,46 @@ startup
     });
 }
 
-init
-{
+init {
     vars.watchers = new MemoryWatcherList();
     vars.splits = new Dictionary<string, Dictionary<string, int>>();
 
-    if (!vars.TryFindOffsets(game, modules.First().ModuleMemorySize, (long)modules.First().BaseAddress))
-        throw new Exception("Emulated memory not yet initialized.");
-    else
+    if (!vars.TryFindOffsets(game, modules.First().ModuleMemorySize, (long)modules.First().BaseAddress)) {
+        throw new Exception("[Autosplitter] Emulated memory not yet initialized.");
+    } else {
         refreshRate = 200/3.0;
+    }
 }
 
-update
-{
+update {
     vars.watchers.UpdateAll(game);
 }
 
-start
-{
+start {
     return vars.watchers["fileSelect1"].Current == 0x23 && vars.watchers["fileSelect2"].Current == 0x0301;
 }
 
-reset
-{
+reset {
     //return vars.watchers["resetCheck"].Current > 0;
 }
 
-split
-{
+split {
     //prevent splitting on the file select screen
     var fs = vars.watchers["fileSelect1"].Current;
-    if (fs == 0x17 || fs == 0x23)
+    if (fs == 0x17 || fs == 0x23) {
         return false;
+    }
 
-    foreach (var _split in vars.splits)
-    {
-        if (settings[_split.Key])
-        {
+    foreach (var _split in vars.splits) {
+        if (settings[_split.Key]) {
             var count = 0;
-            foreach (var _condition in _split.Value)
-            {
-                if (vars.watchers[_condition.Key].Current == _condition.Value)
+            foreach (var _condition in _split.Value) {
+                if (vars.watchers[_condition.Key].Current == _condition.Value) {
                     count++;
+                }
             }
 
-            if (count == _split.Value.Count)
-            {
+            if (count == _split.Value.Count) {
                 print("[Autosplitter] Split: " + _split.Key);
                 vars.splits.Remove(_split.Key);
                 return true;
@@ -227,12 +192,10 @@ split
     }
 }
 
-exit
-{
+exit {
     refreshRate = 0.5;
 }
 
-shutdown
-{
+shutdown {
     timer.OnStart -= vars.timer_OnStart;
 }
