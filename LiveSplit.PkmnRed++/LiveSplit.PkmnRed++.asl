@@ -117,7 +117,7 @@ startup {
             { "exitVictoryRoad", new Dictionary<string, uint> { { "mapIndex", 0x22u }, { "playerPos", 0x0E1Fu } } },
             { "hm02", new Dictionary<string, uint> { { "itemsInBag", 0xFFu }, { "mapIndex", 0xBCu } } }, // dummy values for itemsinbag
             { "flute", new Dictionary<string, uint> { { "itemsInBag", 0xFFu }, { "mapIndex", 0x95u } } }, // dummy values for itemsinbag
-            { "hof", new Dictionary<string, uint> { { "mapIndex", 0x76u }, { "hofPlayerShown", 0x3Bu }, { "hofTile", 0x79u }, { "rBGP", 0u } } },
+            { "hof", new Dictionary<string, uint> { { "mapIndex", 0x76u }, { "hofPlayerShown", 0x3Bu }, { "hofTile", 0x79u }, { "rBGP", 0xFFu } } },
         };
     });
 }
@@ -155,6 +155,8 @@ split {
                 if (vars.watchers[_condition.Key].Current == _condition.Value) {
                     count++;
                 } else if ((_split.Key == "hm02" || _split.Key == "flute") && (_condition.Key == "itemsInBag") && (vars.watchers[_condition.Key].Current != vars.watchers[_condition.Key].Old)) {
+                    count++;
+                } else if (_split.Key == "hof" && _condition.Key == "rBGP" && vars.watchers[_condition.Key].Old == 0u) {
                     count++;
                 }
             }
