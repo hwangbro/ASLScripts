@@ -61,7 +61,7 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10BB)) { Name = "roomID" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1D80)) { Name = "curSongID"},
 
-            new MemoryWatcher<byte>(hramOffset + 0x10) { Name = "input" },
+            new MemoryWatcher<byte>(hramOffset + 0x11) { Name = "input" },
         };
     });
 
