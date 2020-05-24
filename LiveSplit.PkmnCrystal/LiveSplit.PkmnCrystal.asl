@@ -5,7 +5,7 @@ state("gambatte_speedrun") {}
 
 startup {
     //-------------------------------------------------------------//
-    settings.Add("all", true, "Glichless Any%");
+    settings.Add("all", true, "Any% Glichless");
     settings.CurrentDefaultParent = "all";
     settings.Add("falkner", true, "Violet Gym (Falkner)");
     settings.Add("bugsy", true, "Azalea Gym (Bugsy)");
@@ -42,6 +42,7 @@ startup {
         vars.lastTrainer = 0;
         vars.endTriggered = false;
         vars.splits = vars.GetSplitList();
+        vars.ended = false;
     });
     timer.OnStart += vars.timer_OnStart;
 
@@ -114,7 +115,7 @@ startup {
             { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
             { "sabrina", new Dictionary<string, uint> { { "opponentClass", 0x23u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
             { "brock", new Dictionary<string, uint> { { "opponentClass", 0x11u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
-            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "battleEnded", 22u }, { "tileMap", 0x16u }, { "hOAMUpdate", 0u } } },
+            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "rBGP", 0xF9u } } },
         };
     });
 }
@@ -122,6 +123,7 @@ startup {
 init {
     vars.lastTrainer = 0;
     vars.endTriggered = false;
+    vars.ended = false;
 
     vars.watchers = new MemoryWatcherList();
     vars.splits = new Dictionary<string, Dictionary<string, uint>>();
@@ -144,11 +146,10 @@ update {
         vars.lastTrainer = 0;
     }
 
-    // TO-DO: find cleaner method to check for red textbox than using endTriggered bit
-    if (vars.lastTrainer == 63) {
-        if(vars.watchers["hOAMUpdate"].Current == 1 && vars.watchers["tileMap"].Old == 121 && vars.watchers["tileMap"].Current == 22) {
-            vars.endTriggered = true;
-        }
+    if (timer.CurrentPhase.ToString() == "Ended" && !vars.ended) {
+        double delay =  16.74270645 * 25;
+        timer.Run[1].SplitTime = new Time(timer.CurrentTime.RealTime - TimeSpan.FromMilliseconds(delay));
+        vars.ended = true;
     }
 }
 
@@ -173,9 +174,6 @@ split {
             }
 
             if (count == _split.Value.Count) {
-                if (_split.Key == "red" && !vars.endTriggered) {
-                    continue; //skip the first occurance of the split conditions for red
-                }
                 print("[Autosplitter] Split: " + _split.Key);
                 vars.splits.Remove(_split.Key);
                 return true;

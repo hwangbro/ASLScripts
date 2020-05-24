@@ -41,6 +41,7 @@ startup {
         vars.lastTrainer = 0;
         vars.endTriggered = false;
         vars.splits = vars.GetSplitList();
+        vars.ended = false;
     });
     timer.OnStart += vars.timer_OnStart;
 
@@ -73,14 +74,13 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C12)) { Name = "battleEnded" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FE9)) { Name = "battleResult" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x111B)) { Name = "trainerID" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0490)) { Name = "tileMap" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x11A1)) { Name = "playerID" },
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x11A1)) { Name = "playerID" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1199)) { Name = "options" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0EAB)) { Name = "menuSelection" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x18B8)) { Name = "gameTimerPaused" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x01CD)) { Name = "inOverworld" },
 
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
-            new MemoryWatcher<byte>(hramOffset + 0x5A) { Name = "hOAMUpdate" },
             new MemoryWatcher<byte>(hramOffset + 0x26) { Name = "inputPressed" },
             new MemoryWatcher<byte>(hramOffset + 0x2C) { Name = "inMenu" },
 
@@ -112,7 +112,7 @@ startup {
             { "blaine", new Dictionary<string, uint> { { "opponentClass", 0x2Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "janine", new Dictionary<string, uint> { { "opponentClass", 0x1Au }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "battleEnded", 0xFFu }, { "tileMap", 0x16u }, { "hOAMUpdate", 0u } } }, // dummy value for battleEnded
+            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "inOverworld", 1u }, { "rBGP", 0xF9u } } },
         };
     });
 }
@@ -120,6 +120,7 @@ startup {
 init {
     vars.lastTrainer = 0;
     vars.endTriggered = false;
+    vars.ended = false;
 
     vars.watchers = new MemoryWatcherList();
     vars.splits = new Dictionary<string, Dictionary<string, uint>>();
@@ -142,11 +143,10 @@ update {
         vars.lastTrainer = 0;
     }
 
-    // TO-DO: find cleaner method to check for red textbox than using endTriggered bit
-    if (vars.lastTrainer == 63) {
-        if(vars.watchers["hOAMUpdate"].Current == 1 && vars.watchers["tileMap"].Old == 121 && vars.watchers["tileMap"].Current == 22) {
-            vars.endTriggered = true;
-        }
+    if (timer.CurrentPhase.ToString() == "Ended" && !vars.ended) {
+        double delay =  16.74270645 * 14;
+        timer.Run[1].SplitTime = new Time(timer.CurrentTime.RealTime - TimeSpan.FromMilliseconds(delay));
+        vars.ended = true;
     }
 }
 
@@ -167,15 +167,10 @@ split {
                     count++;
                 } else if (_condition.Key == "opponentClass" && _condition.Value == vars.lastTrainer) {
                     count++;
-                } else if (_split.Key == "red" && _condition.Key == "battleEnded" && vars.endTriggered) {
-                    count++;
                 }
             }
 
             if (count == _split.Value.Count) {
-                if (_split.Key == "red" && !vars.endTriggered) {
-                    continue; //skip the first occurance of the split conditions for red
-                }
                 print("[Autosplitter] Split: " + _split.Key);
                 vars.splits.Remove(_split.Key);
                 return true;
