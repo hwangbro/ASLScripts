@@ -40,7 +40,6 @@ startup {
 
     vars.timer_OnStart = (EventHandler)((s, e) => {
         vars.lastTrainer = 0;
-        vars.endTriggered = false;
         vars.splits = vars.GetSplitList();
         vars.ended = false;
     });
@@ -75,7 +74,6 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0734)) { Name = "battleEnded" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10EE)) { Name = "battleResult" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1231)) { Name = "trainerID" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0590)) { Name = "tileMap" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x147B)) { Name = "playerID" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FCC)) { Name = "options" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0F74)) { Name = "menuSelection" },
@@ -83,7 +81,6 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x02CE)) { Name = "inOverworld" }, // wSpriteUpdatesEnabled: 0 = battle, 1 = overworld
 
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
-            new MemoryWatcher<byte>(hramOffset + 0x58) { Name = "hOAMUpdate"},
             new MemoryWatcher<byte>(hramOffset + 0x24) { Name = "inputPressed" },
             new MemoryWatcher<byte>(hramOffset + 0x2A) { Name = "inMenu" },
         };
@@ -115,14 +112,13 @@ startup {
             { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
             { "sabrina", new Dictionary<string, uint> { { "opponentClass", 0x23u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
             { "brock", new Dictionary<string, uint> { { "opponentClass", 0x11u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
-            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "rBGP", 0xF9u } } },
+            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "inOverworld", 0x1u }, { "rBGP", 0xF9u } } },
         };
     });
 }
 
 init {
     vars.lastTrainer = 0;
-    vars.endTriggered = false;
     vars.ended = false;
 
     vars.watchers = new MemoryWatcherList();
@@ -174,6 +170,9 @@ split {
             }
 
             if (count == _split.Value.Count) {
+                if (_split.Key == "red" && !(vars.lastTrainer == 0x3Fu && vars.watchers["opponentClass"].Current == 0)) {
+                    continue; //skip the first occurance of the split conditions for red
+                }
                 print("[Autosplitter] Split: " + _split.Key);
                 vars.splits.Remove(_split.Key);
                 return true;

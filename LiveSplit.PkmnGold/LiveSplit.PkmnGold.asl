@@ -39,7 +39,6 @@ startup {
 
     vars.timer_OnStart = (EventHandler)((s, e) => {
         vars.lastTrainer = 0;
-        vars.endTriggered = false;
         vars.splits = vars.GetSplitList();
         vars.ended = false;
     });
@@ -119,7 +118,6 @@ startup {
 
 init {
     vars.lastTrainer = 0;
-    vars.endTriggered = false;
     vars.ended = false;
 
     vars.watchers = new MemoryWatcherList();
