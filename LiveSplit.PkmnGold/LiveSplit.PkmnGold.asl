@@ -143,7 +143,7 @@ update {
 
     if (timer.CurrentPhase.ToString() == "Ended" && !vars.ended) {
         double delay =  16.74270645 * 14;
-        timer.Run[1].SplitTime = new Time(timer.CurrentTime.RealTime - TimeSpan.FromMilliseconds(delay));
+        timer.Run[timer.Run.Count-1].SplitTime = new Time(timer.CurrentTime.RealTime - TimeSpan.FromMilliseconds(delay));
         vars.ended = true;
     }
 }
