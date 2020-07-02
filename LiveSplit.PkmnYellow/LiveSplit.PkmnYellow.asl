@@ -33,6 +33,7 @@ startup {
     settings.Add("exitVictoryRoad", true, "Exit Victory Road");
     settings.Add("hm02", true, "Obtain HM02");
     settings.Add("flute", true, "Obtain Poké Flute");
+    settings.Add("hm03", false, "Obtain HM03");
     settings.Add("hof", true, "HoF Fade Out");
     //-------------------------------------------------------------//
 
@@ -112,6 +113,8 @@ startup {
             { "exitViridianForest", new Dictionary<string, uint> { { "mapIndex", 0x2Fu}, { "playerPos", 0x0407u } } },
             { "hm02", new Dictionary<string, uint> { { "soundID", 0x94u }, { "mapIndex", 0xBCu } } },
             { "flute", new Dictionary<string, uint> { { "soundID", 0x94u }, { "mapIndex", 0x95u } } },
+            { "hm03", new Dictionary<string, uint> { { "soundID", 0x86u }, { "mapIndex", 0xDEu } } },
+
             { "hof", new Dictionary<string, uint> { { "mapIndex", 0x76u }, { "hofPlayerShown", 1u }, { "hofTile", 0x79u }, { "rBGP", 0u } } },
         };
     });
