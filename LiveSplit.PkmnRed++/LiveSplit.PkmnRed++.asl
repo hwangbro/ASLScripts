@@ -9,7 +9,7 @@ startup {
     settings.Add("other", true, "Other");
 
     settings.CurrentDefaultParent = "battles";
-    settings.Add("nidoran", true, "Catch 2nd Pokemon (Nidoran/Spearow)");
+    settings.Add("nidoran", true, "Catch Nidoran");
     settings.Add("route3", false, "Route 3 Last Bug Catcher");
     settings.Add("silphGiovanni", true, "Silph Co. (Giovanni)");
     settings.Add("nuggetBridge", true, "Nugget Bridge (Rocket)");
@@ -93,7 +93,7 @@ startup {
 
     vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
         return new Dictionary<string, Dictionary<string, uint>> {
-            { "nidoran", new Dictionary<string, uint> { { "partyCount", 2u }, { "stack", 0x03AEu } } },
+            { "nidoran", new Dictionary<string, uint> { { "partyCount", 3u }, { "stack", 0x03AEu } } },
             { "route3", new Dictionary<string, uint> { { "opponentName", 0x7FA6B481 }, { "opponentTrainerNo", 6u }, { "enemyPkmn", 0u }, {"stack", 0x03AEu } } },
             { "nuggetBridge", new Dictionary<string, uint> { { "opponentName", 0xAAA2AE91 }, { "mapIndex", 0x23u }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
             { "silphGiovanni", new Dictionary<string, uint> { { "opponentName", 0xB2B2AE81 }, { "mapIndex", 0xEBu }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
