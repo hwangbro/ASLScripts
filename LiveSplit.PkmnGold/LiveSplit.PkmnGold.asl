@@ -8,6 +8,7 @@ startup {
     settings.Add("all", true, "Glichless Any%");
     settings.CurrentDefaultParent = "all";
     settings.Add("falkner", true, "Violet Gym (Falkner)");
+    settings.Add("unioncave", false, "Union Cave Exit");
     settings.Add("bugsy", true, "Azalea Gym (Bugsy)");
     settings.Add("whitney", true, "Goldenrod Gym (Whitney)");
     settings.Add("morty", true, "Ecruteak Gym (Morty)");
@@ -78,6 +79,7 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0EAB)) { Name = "menuSelection" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x18B8)) { Name = "gameTimerPaused" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x01CD)) { Name = "inOverworld" },
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1A00)) { Name = "mapID" },
 
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
             new MemoryWatcher<byte>(hramOffset + 0x26) { Name = "inputPressed" },
@@ -89,6 +91,7 @@ startup {
     vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
         return new Dictionary<string, Dictionary<string, uint>> {
             { "falkner", new Dictionary<string, uint> { { "opponentClass", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "unioncave", new Dictionary<string, uint> { { "mapID", 0x0608u } } },
             { "bugsy", new Dictionary<string, uint> { { "opponentClass", 3u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "whitney", new Dictionary<string, uint> { { "opponentClass", 2u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "morty", new Dictionary<string, uint> { { "opponentClass", 4u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
