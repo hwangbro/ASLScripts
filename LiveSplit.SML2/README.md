@@ -1,12 +1,13 @@
-# LiveSplit.PkmnRed
+# LiveSplit.SML2
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Super Mario Land 2: 6 Golden Coins** on emulator.
 
 ### Supported emulators:
 - Gambatte-Speedrun r717
 
 ## Features
-- Automatically start the timer when you start a new game
+- Automatically start the timer when you start a new game in slot 1
 - Automatically split for certain events (chosen in the settings)
+- Automatically reset the timer when you clear your save data in slot 1
 
 ## Installation
 - Go to "Edit Splits..." in LiveSplit
