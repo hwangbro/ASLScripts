@@ -60,6 +60,7 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10B5)) { Name = "inEvent"},
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10BB)) { Name = "roomID" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1D80)) { Name = "curSongID"},
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1413)) { Name = "scriptPointer"},
 
             new MemoryWatcher<byte>(hramOffset + 0x11) { Name = "input" },
         };
@@ -80,7 +81,7 @@ startup {
             { "jack", new Dictionary<string, uint> { { "opponentName", 0x03D6u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "rod", new Dictionary<string, uint> { { "opponentName", 0x03D7u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
             { "ronald", new Dictionary<string, uint> { { "opponentName", 0x3ADu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u }, { "roomID", 0x20u } } },
-            { "end", new Dictionary<string, uint> { { "roomID", 0x21u }, { "inEvent", 0x04u } } },
+            { "end", new Dictionary<string, uint> { { "roomID", 0x01u }, { "scriptPointer", 0x7C0Cu } } },
         };
     });
 }
