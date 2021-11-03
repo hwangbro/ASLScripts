@@ -79,6 +79,7 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0F74)) { Name = "menuSelection" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FBC)) { Name = "gameTimerPaused" },
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x02CE)) { Name = "inOverworld" }, // wSpriteUpdatesEnabled: 0 = battle, 1 = overworld
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x02A8)) { Name = "musicFade" },
 
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
             new MemoryWatcher<byte>(hramOffset + 0x24) { Name = "inputPressed" },
@@ -112,7 +113,7 @@ startup {
             { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
             { "sabrina", new Dictionary<string, uint> { { "opponentClass", 0x23u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
             { "brock", new Dictionary<string, uint> { { "opponentClass", 0x11u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "inOverworld", 0x0u }, { "rBGP", 0u } } },
-            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "inOverworld", 0x1u }, { "rBGP", 0xF9u } } },
+            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "inOverworld", 0x1u }, { "musicFade", 2u }, { "rBGP", 0u } } },
         };
     });
 }
@@ -141,12 +142,6 @@ update {
     if (vars.watchers["playerID"].Current == 0) {
         vars.lastTrainer = 0;
     }
-
-    if (timer.CurrentPhase.ToString() == "Ended" && !vars.ended) {
-        double delay =  16.74270645 * 25;
-        timer.Run[timer.Run.Count-1].SplitTime = new Time(timer.CurrentTime.RealTime - TimeSpan.FromMilliseconds(delay));
-        vars.ended = true;
-    }
 }
 
 start {
@@ -165,6 +160,8 @@ split {
                 if (vars.watchers[_condition.Key].Current == _condition.Value) {
                     count++;
                 } else if (_condition.Key == "opponentClass" && _condition.Value == vars.lastTrainer) {
+                    count++;
+                } else if (_condition.Key == "musicFade" && vars.watchers[_condition.Key].Current == 1) {
                     count++;
                 }
             }

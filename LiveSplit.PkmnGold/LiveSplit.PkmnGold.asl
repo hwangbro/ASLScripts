@@ -81,6 +81,8 @@ startup {
             new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x01CD)) { Name = "inOverworld" },
             new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1A00)) { Name = "mapID" },
 
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x01A8)) { Name = "musicFade" },
+
             new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
             new MemoryWatcher<byte>(hramOffset + 0x26) { Name = "inputPressed" },
             new MemoryWatcher<byte>(hramOffset + 0x2C) { Name = "inMenu" },
@@ -114,7 +116,7 @@ startup {
             { "blaine", new Dictionary<string, uint> { { "opponentClass", 0x2Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "janine", new Dictionary<string, uint> { { "opponentClass", 0x1Au }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
             { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
-            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "inOverworld", 1u }, { "rBGP", 0xF9u } } },
+            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "inOverworld", 1u }, { "musicFade", 2u }, { "rBGP", 0u } } },
         };
     });
 }
@@ -143,12 +145,6 @@ update {
     if (vars.watchers["playerID"].Current == 0) {
         vars.lastTrainer = 0;
     }
-
-    if (timer.CurrentPhase.ToString() == "Ended" && !vars.ended) {
-        double delay =  16.74270645 * 14;
-        timer.Run[timer.Run.Count-1].SplitTime = new Time(timer.CurrentTime.RealTime - TimeSpan.FromMilliseconds(delay));
-        vars.ended = true;
-    }
 }
 
 start {
@@ -167,6 +163,8 @@ split {
                 if (vars.watchers[_condition.Key].Current == _condition.Value) {
                     count++;
                 } else if (_condition.Key == "opponentClass" && _condition.Value == vars.lastTrainer) {
+                    count++;
+                } else if (_condition.Key == "musicFade" && vars.watchers[_condition.Key].Current == 1) {
                     count++;
                 }
             }
