@@ -47,6 +47,7 @@ startup {
         emu.Make<ushort>("wPlayerID", 0x11A1);
         emu.Make<byte>("wOptions", 0x1199);
         emu.Make<byte>("wMenuSelection", 0x0EAB);
+        emu.Make<byte>("wMenuCursorY", 0x0EE0);
         emu.Make<byte>("wGameTimerPaused", 0x18B8);
         emu.Make<byte>("wSpriteUpdatesEnabled", 0x01CD);
         emu.Make<byte>("wMapGroup", 0x1A00);
@@ -153,6 +154,10 @@ split {
             return true;
         }
     }
+}
+
+reset {
+    return current.wPlayerID == 0 && ((current.wMenuCursorY == 2 && old.wMenuCursorY == 1) || current.hJoypadDown == 70);
 }
 
 exit {

@@ -12,6 +12,7 @@ startup
     settings.CurrentDefaultParent = "battles";
     settings.Add("nidoran", true, "Catch 2nd Pokemon (Nidoran/Spearow)");
     settings.Add("route3", false, "Route 3 Last Bug Catcher");
+    settings.Add("hideoutGiovanni", false, "Hideout (Giovanni)");
     settings.Add("silphGiovanni", false, "Silph Co. (Giovanni)");
     settings.Add("nuggetBridge", true, "Nugget Bridge (Rocket)");
     settings.Add("gym1", true, "Pewter Gym (Brock)");
@@ -36,8 +37,6 @@ startup
     settings.Add("hm02", true, "Obtain HM02");
     settings.Add("flute", true, "Obtain Poké Flute");
     settings.Add("hof", true, "HoF Fade Out");
-    settings.Add("hof1", false, "HoF First Transition", "hof");
-    settings.Add("hof2", false, "HoF Second Transition", "hof");
     settings.Add("hofany", false, "Hof any%", "hof");
 
     settings.CurrentDefaultParent = "nsc";
@@ -100,6 +99,7 @@ startup
             {"nidoran", vars.Current("wCurMap", 0x33) && vars.Current("wPartyCount", 2) && vars.Current("wStack", enterMapBreakpoint)},
             {"route3", vars.Current("wTrainerName", 0x8194867F) && vars.Current("wTrainerNo", 6) && battleOver},
             {"nuggetBridge", vars.Current("wTrainerName", 0x918E828A) && vars.Current("wCurMap", 0x23) && battleOver},
+            {"hideoutGiovanni", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0xCA) && battleOver},
             {"silphGiovanni", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0xEB) && battleOver},
             {"gym1", vars.Current("wTrainerName", 0x81918E82) && battleOver},
             {"gym2", vars.Current("wTrainerName", 0x8C889293) && battleOver},
@@ -124,8 +124,6 @@ startup
 
             // hof
             {"hof", vars.Current("wCurMap", 0x76) && vars.Current("wHoFMonOrPlayer", 0x01000000) && vars.Current("hofTile", 0x79) && fadeWhite},
-            {"hof1", vars.IsOnTile(0x76, 0x07, 0x04)},
-            {"hof2", vars.IsOnTile(0x76, 0x02, 0x04) && fadeWhite},
             {"hofany", vars.Current("wHoFMonOrPlayer", 0x01000C00) && vars.Current("wTextDest", 0xF2C4) && fadeWhite},
 
             // nsc
