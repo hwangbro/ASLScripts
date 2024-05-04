@@ -1,3 +1,5 @@
+// Credit to Bartic77 and Mythicy for previous versions of this autosplitter.
+
 state("GSR") { }
 state("mGBA") { }
 
