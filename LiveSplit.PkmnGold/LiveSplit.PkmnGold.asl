@@ -1,5 +1,7 @@
-state("GSR") { }
-state("gambatte_speedrun") { }
+state("gambatte") {}
+state("gambatte_qt") {}
+state("gambatte_qt_nonpsr") {}
+state("gambatte_speedrun") {}
 
 startup {
     //-------------------------------------------------------------//
@@ -36,130 +38,150 @@ startup {
 
     refreshRate = 0.5;
 
-    Assembly.Load(File.ReadAllBytes("Components/emu-help-v2")).CreateInstance("GBC");
+    vars.timer_OnStart = (EventHandler)((s, e) => {
+        vars.lastTrainer = 0;
+        vars.splits = vars.GetSplitList();
+        vars.ended = false;
+    });
+    timer.OnStart += vars.timer_OnStart;
 
-    vars.Helper.Load = (Func<dynamic, bool>)(emu =>
-    {
-        emu.Make<byte>("wOtherTrainerClass", 0x1118);
-        emu.Make<byte>("wBattleEnded", 0x0C12);
-        emu.Make<byte>("wBattleResult", 0x0FE9);
-        emu.Make<byte>("wOtherTrainerID", 0x111B);
-        emu.Make<ushort>("wPlayerID", 0x11A1);
-        emu.Make<byte>("wOptions", 0x1199);
-        emu.Make<byte>("wMenuSelection", 0x0EAB);
-        emu.Make<byte>("wMenuCursorY", 0x0EE0);
-        emu.Make<byte>("wGameTimerPaused", 0x18B8);
-        emu.Make<byte>("wSpriteUpdatesEnabled", 0x01CD);
-        emu.Make<byte>("wMapGroup", 0x1A00);
-        emu.Make<byte>("wMapNumber", 0x1A01);
-        emu.Make<byte>("wMusicFadeID", 0x01A8);
+    vars.TryFindOffsets = (Func<Process, bool>)((proc) => {
+        print("[Autosplitter] Scanning memory");
+        var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
 
+        int scanOffset = 0;
+        foreach (var page in proc.MemoryPages()) {
+            var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
+            if ((scanOffset = (int)scanner.Scan(target)) != 0) {
+                break;
+            }
+        }
 
-        emu.Make<byte>("rBGP", 0xFF47);
-        emu.Make<byte>("hJoypadDown", 0xFFA6);
-        emu.Make<byte>("hInMenu", 0xFFAC);
-        return true;
+        if (scanOffset != 0) {
+            var wramOffset = scanOffset - 0x10;
+            vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443));
+            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
+
+            return true;
+        }
+
+        return false;
     });
 
-    vars.Current = (Func<string, uint, bool>)((name, value) =>
-    {
-        return vars.Helper[name].Current == value;
-    });
+    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) => {
+        return new MemoryWatcherList {
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1118)) { Name = "opponentClass" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C12)) { Name = "battleEnded" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FE9)) { Name = "battleResult" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x111B)) { Name = "trainerID" },
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x11A1)) { Name = "playerID" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1199)) { Name = "options" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0EAB)) { Name = "menuSelection" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x18B8)) { Name = "gameTimerPaused" },
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x01CD)) { Name = "inOverworld" },
+            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1A00)) { Name = "mapID" },
 
-    vars.GetSplitList = (Func<Dictionary<string, bool>>)(() =>
-    {
-        bool fadeWhite = vars.Current("rBGP", 0);
-        bool battleOver = vars.Current("wBattleEnded", 1) && vars.Current("wBattleResult", 0) && fadeWhite;
-        return new Dictionary<string, bool> {
-            {"falkner", vars.lastTrainer == 1 && battleOver},
-            {"unioncave", vars.Current("wMapGroup", 0x08) && vars.Current("wMapNumber", 0x06)},
-            {"bugsy", vars.lastTrainer == 3 && battleOver},
-            {"whitney", vars.lastTrainer == 2 && battleOver},
-            {"morty", vars.lastTrainer == 4 && battleOver},
-            {"chuck", vars.lastTrainer == 7 && battleOver},
-            {"pryce", vars.lastTrainer == 5 && battleOver},
-            {"jasmine", vars.lastTrainer == 6 && battleOver},
-            {"rival4", vars.lastTrainer == 9 && vars.Current("wOtherTrainerID", 10) && battleOver},
-            {"radioTower", vars.lastTrainer == 0x33 && vars.Current("wOtherTrainerID", 1) && battleOver},
-            {"clair", vars.lastTrainer == 8 && battleOver},
-            {"will", vars.lastTrainer == 0xB && battleOver},
-            {"koga", vars.lastTrainer == 0xF && battleOver},
-            {"bruno", vars.lastTrainer == 0xD && battleOver},
-            {"karen", vars.lastTrainer == 0xE && battleOver},
-            {"lance", vars.lastTrainer == 0x10 && battleOver},
-            {"erika", vars.lastTrainer == 0x15 && battleOver},
-            {"sabrina", vars.lastTrainer == 0x23 && battleOver},
-            {"misty", vars.lastTrainer == 0x12 && battleOver},
-            {"surge", vars.lastTrainer == 0x13 && battleOver},
-            {"brock", vars.lastTrainer == 0x11 && battleOver},
-            {"blaine", vars.lastTrainer == 0x2E && battleOver},
-            {"janine", vars.lastTrainer == 0x1A && battleOver},
-            {"blue", vars.lastTrainer == 0x40 && battleOver},
-            {"red", vars.lastTrainer == 0x3F && vars.Current("wBattleResult", 0) && vars.Current("wSpriteUpdatesEnabled", 1) && (vars.Helper["wMusicFadeID"].Current == 2 || vars.Helper["wMusicFadeID"].Current == 1) && fadeWhite},
+            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x01A8)) { Name = "musicFade" },
+
+            new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
+            new MemoryWatcher<byte>(hramOffset + 0x26) { Name = "inputPressed" },
+            new MemoryWatcher<byte>(hramOffset + 0x2C) { Name = "inMenu" },
+
         };
     });
 
-    vars.PrintVar = (Func<string, Action>)(name =>
-    {
-        print(vars.Helper[name].Current.ToString());
-        return;
-    });
-
-    vars.PrintHex = (Func<string, Action>)(name =>
-    {
-        print(vars.Helper[name].Current.ToString("X"));
-        return;
+    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
+        return new Dictionary<string, Dictionary<string, uint>> {
+            { "falkner", new Dictionary<string, uint> { { "opponentClass", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "unioncave", new Dictionary<string, uint> { { "mapID", 0x0608u } } },
+            { "bugsy", new Dictionary<string, uint> { { "opponentClass", 3u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "whitney", new Dictionary<string, uint> { { "opponentClass", 2u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "morty", new Dictionary<string, uint> { { "opponentClass", 4u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "chuck", new Dictionary<string, uint> { { "opponentClass", 7u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "pryce", new Dictionary<string, uint> { { "opponentClass", 5u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "jasmine", new Dictionary<string, uint> { { "opponentClass", 6u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "rival4", new Dictionary<string, uint> { { "opponentClass", 9u }, { "trainerID", 10u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "radioTower", new Dictionary<string, uint> { { "opponentClass", 0x33u }, { "trainerID", 1u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "clair", new Dictionary<string, uint> { { "opponentClass", 8u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "will", new Dictionary<string, uint> { { "opponentClass", 0x0Bu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "koga", new Dictionary<string, uint> { { "opponentClass", 0x0Fu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "bruno", new Dictionary<string, uint> { { "opponentClass", 0x0Du }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "karen", new Dictionary<string, uint> { { "opponentClass", 0x0Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "lance", new Dictionary<string, uint> { { "opponentClass", 0x10u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "erika", new Dictionary<string, uint> { { "opponentClass", 0x15u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "sabrina", new Dictionary<string, uint> { { "opponentClass", 0x23u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "misty", new Dictionary<string, uint> { { "opponentClass", 0x12u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "surge", new Dictionary<string, uint> { { "opponentClass", 0x13u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "brock", new Dictionary<string, uint> { { "opponentClass", 0x11u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "blaine", new Dictionary<string, uint> { { "opponentClass", 0x2Eu }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "janine", new Dictionary<string, uint> { { "opponentClass", 0x1Au }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "blue", new Dictionary<string, uint> { { "opponentClass", 0x40u }, { "battleResult", 0u }, { "battleEnded", 1u }, { "rBGP", 0u } } },
+            { "red", new Dictionary<string, uint> { { "opponentClass", 0x3Fu }, { "battleResult", 0u }, { "inOverworld", 1u }, { "musicFade", 2u }, { "rBGP", 0u } } },
+        };
     });
 }
 
 init {
-    vars.pastSplits = new HashSet<string>();
-    refreshRate = 200 / 3.0;
     vars.lastTrainer = 0;
+    vars.ended = false;
+
+    vars.watchers = new MemoryWatcherList();
+    vars.splits = new Dictionary<string, Dictionary<string, uint>>();
+
+    if (!vars.TryFindOffsets(game)) {
+        throw new Exception("Emulated memory not yet initialized.");
+    } else {
+        refreshRate = 200/3.0;
+    }
 }
 
-update
-{
-    if(timer.CurrentPhase == TimerPhase.NotRunning && vars.pastSplits.Count > 0) {
-        vars.pastSplits.Clear();
-    }
-
-    if (current.wOtherTrainerClass != old.wOtherTrainerClass) {
-        vars.lastTrainer = old.wOtherTrainerClass;
+update {
+    vars.watchers.UpdateAll(game);
+    if (vars.watchers["opponentClass"].Current != vars.watchers["opponentClass"].Old) {
+        vars.lastTrainer = vars.watchers["opponentClass"].Old;
     }
 
     // reset lastTrainer if hard/soft reset
-    if (current.wPlayerID == 0) {
+    if (vars.watchers["playerID"].Current == 0) {
         vars.lastTrainer = 0;
     }
-
-    print((vars.Helper["wOptions"].Current & 7).ToString());
 }
 
 start {
-    return ((vars.Helper["wOptions"].Current & 7) == 1 &&
-        vars.Helper["wMenuSelection"].Current == 1 &&
-        vars.Helper["hJoypadDown"].Current == 1 &&
-        vars.Helper["hInMenu"].Current == 0 &&
-        vars.Helper["wGameTimerPaused"].Current == 0);
+    return ((vars.watchers["options"].Current & 7) == 1 &&
+        vars.watchers["menuSelection"].Current == 1 &&
+        vars.watchers["inputPressed"].Current == 1 &&
+        vars.watchers["inMenu"].Current == 0 &&
+        vars.watchers["gameTimerPaused"].Current == 0);
 }
 
 split {
-    var splits = vars.GetSplitList();
+    foreach (var _split in vars.splits) {
+        if (settings[_split.Key]) {
+            var count = 0;
+            foreach (var _condition in _split.Value) {
+                if (vars.watchers[_condition.Key].Current == _condition.Value) {
+                    count++;
+                } else if (_condition.Key == "opponentClass" && _condition.Value == vars.lastTrainer) {
+                    count++;
+                } else if (_condition.Key == "musicFade" && vars.watchers[_condition.Key].Current == 1) {
+                    count++;
+                }
+            }
 
-    foreach(var split in splits) {
-        if (settings[split.Key] && split.Value && !vars.pastSplits.Contains(split.Key)) {
-            vars.pastSplits.Add(split.Key);
-            print("[AutoSplitter] Split: " + split.Key);
-            return true;
+            if (count == _split.Value.Count) {
+                print("[Autosplitter] Split: " + _split.Key);
+                vars.splits.Remove(_split.Key);
+                return true;
+            }
         }
     }
 }
 
-reset {
-    return current.wPlayerID == 0 && ((current.wMenuCursorY == 2 && old.wMenuCursorY == 1) || current.hJoypadDown == 70);
-}
-
 exit {
     refreshRate = 0.5;
+}
+
+shutdown {
+    timer.OnStart -= vars.timer_OnStart;
 }
