@@ -1,8 +1,8 @@
-state("gambatte_qt") {}
-state("gambatte") {}
-state("gambatte_speedrun") {}
+state("GSR") { }
+state("gambatte_speedrun") { }
 
-startup {
+startup
+{
     //-------------------------------------------------------------//
     settings.Add("battles", true, "Battles");
     settings.Add("other", true, "Other");
@@ -34,134 +34,125 @@ startup {
     settings.Add("hm02", true, "Obtain HM02");
     settings.Add("flute", true, "Obtain Poké Flute");
     settings.Add("hm03", false, "Obtain HM03");
+    settings.Add("enterMansion", false, "Enter Pokemon Mansion");
     settings.Add("hof", true, "HoF Fade Out");
     //-------------------------------------------------------------//
 
     refreshRate = 0.5;
 
-    vars.timer_OnStart = (EventHandler)((s, e) => {
-        vars.splits = vars.GetSplitList();
-    });
-    timer.OnStart += vars.timer_OnStart;
+    Assembly.Load(File.ReadAllBytes("Components/emu-help-v2")).CreateInstance("GBC");
+    vars.Helper.Load = (Func<dynamic, bool>)(emu =>
+    {
+        emu.Make<byte>("wSoundID", 0x0001);
+        emu.Make<byte>("hofTile", 0x0490);
+        emu.Make<byte>("wCurrentMenuItem", 0x0C26);
+        emu.Make<uint>("wHoFMonOrPlayer", 0x0D40);
+        emu.Make<byte>("wEnemyMonSpecies2", 0x0FD7);
+        emu.Make<uint>("wEnemyMonNick", 0x0FD9);
+        emu.Make<uint>("wTrainerName", 0x1049);
+        emu.Make<byte>("wPartyCount", 0x1162);
+        emu.Make<ushort>("wPlayerID", 0x1358);
+        emu.Make<byte>("wCurMap", 0x135D);
+        emu.Make<byte>("wYCoord", 0x1360);
+        emu.Make<byte>("wXCoord", 0x1361);
+        emu.Make<ushort>("wStack", 0x1FFD);
 
-    vars.TryFindOffsets = (Func<Process, bool>)((proc) => {
-        print("[Autosplitter] Scanning memory");
-        var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
+        // iohram starts 0xff00
+        emu.Make<byte>("rBGP", 0xFF47);
+        emu.Make<byte>("hJoyHeld", 0xFFB4);
 
-        int scanOffset = 0;
-        foreach (var page in proc.MemoryPages()) {
-            var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((scanOffset = (int)scanner.Scan(target)) != 0) {
-                break;
-            }
-        }
-
-        if (scanOffset != 0) {
-            var wramOffset = scanOffset - 0x10;
-            vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443));
-            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
-
-            return true;
-        }
-
-        return false;
+        return true;
     });
 
-    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) => {
-        return new MemoryWatcherList {
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0001)) { Name = "soundID" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0490)) { Name = "hofTile" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C26)) { Name = "cursorIndex" },
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0D40)) { Name = "hofPlayerShown" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FD7)) { Name = "enemyPkmn" },
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0FD9)) { Name = "enemyPkmnName" },
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x1049)) { Name = "opponentName" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1162)) { Name = "partyCount" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1358)) { Name = "playerID" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x135D)) { Name = "mapIndex" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1360)) { Name = "playerPos" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1FFD)) { Name = "stack" },
+    vars.Current = (Func<string, uint, bool>)((name, value) =>
+    {
+        return vars.Helper[name].Current == value;
+    });
 
-            new MemoryWatcher<byte>(hramOffset + 0x34) { Name = "input" },
-            new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
+    vars.IsOnTile = (Func<byte, byte, byte, bool>)((MapID, YCoord, XCoord) =>
+    {
+        return vars.Current("wCurMap", MapID) && vars.Current("wYCoord", YCoord) && vars.Current("wXCoord", XCoord);
+    });
+
+    var enterMapBreakpoint = 0xDF01u;
+    var itemJingleID = 0x94u;
+
+    vars.GetSplitList = (Func<Dictionary<string, bool>>)(() =>
+    {
+        bool battleOver = vars.Current("wEnemyMonSpecies2", 0) && vars.Current("wStack", enterMapBreakpoint);
+        bool fadeWhite = vars.Current("rBGP", 0);
+        return new Dictionary<string, bool> {
+            {"nidoran", vars.IsOnTile(0x32, 0x2B, 0x03)},
+            {"nuggetBridge", vars.Current("wTrainerName", 0x918E828A) && vars.Current("wCurMap", 0x23) && battleOver},
+            {"silphGiovanni", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0xEB) && battleOver},
+            {"gym1", vars.Current("wTrainerName", 0x81918E82) && battleOver},
+            {"gym2", vars.Current("wTrainerName", 0x8C889293) && battleOver},
+            {"gym3", vars.Current("wTrainerName", 0x8B93E892) && battleOver},
+            {"gym4", vars.Current("wTrainerName", 0x8491888A) && battleOver},
+            {"gym5", vars.Current("wTrainerName", 0x8A8E8680) && battleOver},
+            {"gym6", vars.Current("wTrainerName", 0x92808191) && battleOver},
+            {"gym7", vars.Current("wTrainerName", 0x818B8088) && battleOver},
+            {"gym8", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0x2D) && battleOver},
+            {"elite4_1", vars.Current("wTrainerName", 0x8B8E9184) && battleOver},
+            {"elite4_2", vars.Current("wTrainerName", 0x8191948D) && battleOver},
+            {"elite4_3", vars.Current("wTrainerName", 0x80868093) && battleOver},
+            {"elite4_4", vars.Current("wTrainerName", 0x8B808D82) && battleOver},
+            {"elite4_5", (vars.Current("wEnemyMonNick", 0x858B8091) || vars.Current("wEnemyMonNick", 0x95808F8E)) && vars.Current("wCurMap", 0x78) && battleOver},
+
+            {"rival", vars.Current("wCurMap", 0) && vars.Current("wPartyCount", 1)},
+            {"enterMtMoon", vars.IsOnTile(0x3B, 0x05, 0x12)},
+            {"exitMtMoon", vars.IsOnTile(0x0F, 0x03, 0x1B)},
+            {"exitVictoryRoad", vars.IsOnTile(0x22, 0x1F, 0x0E)},
+            {"exitViridianForest", vars.IsOnTile(0x2F, 0x07, 0x04)},
+            {"hm02", vars.Current("wSoundID", itemJingleID) && vars.Current("wCurMap", 0xBC)},
+            {"flute", vars.Current("wSoundID", itemJingleID) && vars.Current("wCurMap", 0x95)},
+            {"hm03", vars.Current("wSoundID", itemJingleID) && vars.Current("wCurMap", 0xDE)},
+
+            {"hof", vars.Current("wCurMap", 0x76) && vars.Current("wHoFMonOrPlayer", 0x01000000) && vars.Current("hofTile", 0x79) && fadeWhite},
         };
     });
 
-    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
-        return new Dictionary<string, Dictionary<string, uint>> {
-            { "nidoran", new Dictionary<string, uint> { { "mapIndex", 0x32u }, { "playerPos", 0x032Bu } } },
-            { "nuggetBridge", new Dictionary<string, uint> { { "opponentName", 0x8A828E91 }, { "mapIndex", 0x23u }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "silphGiovanni", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0xEBu }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym1", new Dictionary<string, uint> { { "opponentName", 0x828E9181 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym2", new Dictionary<string, uint> { { "opponentName", 0x9392888C }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym3", new Dictionary<string, uint> { { "opponentName", 0x92E8938B }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym4", new Dictionary<string, uint> { { "opponentName", 0x8A889184 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym5", new Dictionary<string, uint> { { "opponentName", 0x80868E8A }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym6", new Dictionary<string, uint> { { "opponentName", 0x91818092 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym7", new Dictionary<string, uint> { { "opponentName", 0x88808B81 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "gym8", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0x2Du }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
-            { "elite4_1", new Dictionary<string, uint> { { "opponentName", 0x84918E8B }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0xF5u }
-            { "elite4_2", new Dictionary<string, uint> { { "opponentName", 0x8D949181 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0xF6u }
-            { "elite4_3", new Dictionary<string, uint> { { "opponentName", 0x93808680 }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0xF7u }
-            { "elite4_4", new Dictionary<string, uint> { { "opponentName", 0x828D808B }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } }, //{ "mapIndex", 0x71u }
-            { "elite4_5", new Dictionary<string, uint> { { "enemyPkmnName", 0x91808B85 }, { "mapIndex", 0x78u }, { "enemyPkmn", 0u }, { "stack", 0x01DFu } } },
+    vars.PrintVar = (Func<string, Action>)(name =>
+    {
+        print(vars.Helper[name].Current.ToString());
+        return;
+    });
 
-            { "rival", new Dictionary<string, uint> { { "mapIndex", 0u }, { "partyCount", 1u } } },
-            { "enterMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x3Bu }, { "playerPos", 0x1205u } } },
-            { "exitMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x0Fu }, { "playerPos", 0x1B03u } } },
-            { "exitVictoryRoad", new Dictionary<string, uint> { { "mapIndex", 0x22u }, { "playerPos", 0x0E1Fu } } },
-            { "exitViridianForest", new Dictionary<string, uint> { { "mapIndex", 0x2Fu}, { "playerPos", 0x0407u } } },
-            { "hm02", new Dictionary<string, uint> { { "soundID", 0x94u }, { "mapIndex", 0xBCu } } },
-            { "flute", new Dictionary<string, uint> { { "soundID", 0x94u }, { "mapIndex", 0x95u } } },
-            { "hm03", new Dictionary<string, uint> { { "soundID", 0x86u }, { "mapIndex", 0xDEu } } },
-
-            { "hof", new Dictionary<string, uint> { { "mapIndex", 0x76u }, { "hofPlayerShown", 1u }, { "hofTile", 0x79u }, { "rBGP", 0u } } },
-        };
+    vars.PrintHex = (Func<string, Action>)(name =>
+    {
+        print(vars.Helper[name].Current.ToString("X"));
+        return;
     });
 }
 
 init {
-    vars.watchers = new MemoryWatcherList();
-    vars.splits = new Dictionary<string, Dictionary<string, uint>>();
+    vars.pastSplits = new HashSet<string>();
+    refreshRate = 200 / 3.0;
+}
 
-    if (!vars.TryFindOffsets(game)) {
-        throw new Exception("Emulated memory not yet initialized.");
-    } else {
-        refreshRate = 200/3.0;
+update
+{
+    if(timer.CurrentPhase == TimerPhase.NotRunning && vars.pastSplits.Count > 0) {
+        vars.pastSplits.Clear();
     }
 }
 
-update {
-    vars.watchers.UpdateAll(game);
-}
-
 start {
-    return vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5C43;
+    return current.wCurrentMenuItem == 0 && current.wPlayerID == 0 && current.wStack == 0x435C && (current.hJoyHeld & 0x80) == 0;
 }
 
 reset {
-    return vars.watchers["cursorIndex"].Current == 1 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5C43;
+    return current.wCurrentMenuItem == 1 && current.wPlayerID == 0 && current.wStack == 0x435C;
 }
 
 split {
-    foreach (var _split in vars.splits) {
-        if (settings[_split.Key]) {
-            var count = 0;
-            foreach (var _condition in _split.Value) {
-                if (vars.watchers[_condition.Key].Current == _condition.Value) {
-                    count++;
-                }
-                // have one split for both vape and flareon fights
-                else if (_split.Key == "elite4_5" && vars.watchers[_condition.Key].Current == 0x8E8F8095) {
-                    count++;
-                }
-            }
+    var splits = vars.GetSplitList();
 
-            if (count == _split.Value.Count) {
-                print("[Autosplitter] Split: " + _split.Key);
-                vars.splits.Remove(_split.Key);
-                return true;
-            }
+    foreach(var split in splits) {
+        if (settings[split.Key] && split.Value && !vars.pastSplits.Contains(split.Key)) {
+            vars.pastSplits.Add(split.Key);
+            print("[AutoSplitter] Split: " + split.Key);
+            return true;
         }
     }
 }
@@ -170,6 +161,3 @@ exit {
     refreshRate = 0.5;
 }
 
-shutdown {
-    timer.OnStart -= vars.timer_OnStart;
-}

@@ -1,17 +1,19 @@
-state("gambatte") {}
-state("gambatte_qt") {}
-state("gambatte_qt_nonpsr") {}
-state("gambatte_speedrun") {}
+state("GSR") { }
+state("gambatte_speedrun") { }
 
-startup {
+startup
+{
     //-------------------------------------------------------------//
     settings.Add("battles", true, "Battles");
     settings.Add("other", true, "Other");
+    settings.Add("nsc", true, "NSC Only");
+    settings.Add("subsplits", false, "Subsplits");
 
     settings.CurrentDefaultParent = "battles";
     settings.Add("nidoran", true, "Catch 2nd Pokemon (Nidoran/Spearow)");
     settings.Add("route3", false, "Route 3 Last Bug Catcher");
-    settings.Add("silphGiovanni", true, "Silph Co. (Giovanni)");
+    settings.Add("hideoutGiovanni", false, "Hideout (Giovanni)");
+    settings.Add("silphGiovanni", false, "Silph Co. (Giovanni)");
     settings.Add("nuggetBridge", true, "Nugget Bridge (Rocket)");
     settings.Add("gym1", true, "Pewter Gym (Brock)");
     settings.Add("gym2", true, "Cerulean Gym (Misty)");
@@ -31,146 +33,153 @@ startup {
     settings.Add("rival", false, "Leave Oak's Lab (after rival fight)");
     settings.Add("enterMtMoon", true, "Enter Mt. Moon");
     settings.Add("exitMtMoon", true, "Exit Mt. Moon");
-    settings.Add("exitVictoryRoad", true, "Exit Victory Road");
+    settings.Add("exitVictoryRoad", false, "Exit Victory Road");
     settings.Add("hm02", true, "Obtain HM02");
     settings.Add("flute", true, "Obtain Poké Flute");
     settings.Add("hof", true, "HoF Fade Out");
+    settings.Add("hofany", false, "Hof any%", "hof");
 
+    settings.CurrentDefaultParent = "nsc";
+    settings.Add("rival_one_start", false, "Rival 1 Tile");
+    settings.Add("rival_one_end", false, "End of Rival 1");
+    settings.Add("deathfly", false, "Deathfly");
+    settings.Add("bc1", false, "Bug Catcher #1");
+    settings.Add("bc2", false, "Bug Catcher #2");
+    settings.Add("bc3", false, "Bug Catcher #3");
     //-------------------------------------------------------------//
 
     refreshRate = 0.5;
 
-    vars.timer_OnStart = (EventHandler)((s, e) => {
-        vars.splits = vars.GetSplitList();
+    Assembly.Load(File.ReadAllBytes("Components/emu-help-v2")).CreateInstance("GBC");
+    vars.Helper.Load = (Func<dynamic, bool>)(emu =>
+    {
+        emu.Make<byte>("wSoundID", 0x0001);
+        emu.Make<byte>("hofTile", 0x0490);
+        emu.Make<byte>("wCurrentMenuItem", 0x0C26);
+        emu.Make<uint>("wHoFMonOrPlayer", 0x0D40);
+        emu.Make<byte>("wEnemyMonSpecies2", 0x0FD8);
+        emu.Make<uint>("wEnemyMonNick", 0x0FDA);
+        emu.Make<byte>("wBattleMonHP", 0x1016);
+        emu.Make<uint>("wTrainerName", 0x104A);
+        emu.Make<byte>("wTrainerNo", 0x105D);
+        emu.Make<byte>("wPartyCount", 0x1163);
+        emu.Make<ushort>("wPartyMon1Exp", 0x117A);
+        emu.Make<ushort>("wPlayerID", 0x1359);
+        emu.Make<byte>("wCurMap", 0x135E);
+        emu.Make<byte>("wYCoord", 0x1361);
+        emu.Make<byte>("wXCoord", 0x1362);
+        emu.Make<ushort>("wStack", 0x1FFD);
+
+        // iohram starts 0xff00
+        emu.Make<byte>("rBGP", 0xFF47);
+        emu.Make<byte>("hJoyHeld", 0xFFB4);
+        emu.Make<ushort>("wTextDest", 0x0C3A);
+
+        return true;
     });
-    timer.OnStart += vars.timer_OnStart;
 
-    vars.TryFindOffsets = (Func<Process, bool>)((proc) => {
-        print("[Autosplitter] Scanning memory");
-        var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
-
-        int scanOffset = 0;
-        foreach (var page in proc.MemoryPages()) {
-            var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((scanOffset = (int)scanner.Scan(target)) != 0) {
-                break;
-            }
-        }
-
-        if (scanOffset != 0) {
-            var wramOffset = scanOffset - 0x10;
-            vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443));
-            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
-
-            return true;
-        }
-
-        return false;
+    vars.Current = (Func<string, uint, bool>)((name, value) =>
+    {
+        return vars.Helper[name].Current == value;
     });
 
-    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) => {
-        return new MemoryWatcherList {
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0001)) { Name = "soundID" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0490)) { Name = "hofTile" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C26)) { Name = "cursorIndex" },
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0D40)) { Name = "hofPlayerShown" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0FD8)) { Name = "enemyPkmn" },
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x0FDA)) { Name = "enemyPkmnName" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1016)) { Name = "pkmnHP" },
-            new MemoryWatcher<uint>(new DeepPointer(wramOffset, 0x104A)) { Name = "opponentName" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x105D)) { Name = "opponentTrainerNo" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1163)) { Name = "partyCount" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x117A)) { Name = "pkmnEXP" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1359)) { Name = "playerID" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x135E)) { Name = "mapIndex" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1361)) { Name = "playerPos" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1FD7)) { Name = "hofFade" },
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1FFD)) { Name = "stack" },
+    vars.IsOnTile = (Func<byte, byte, byte, bool>)((MapID, YCoord, XCoord) =>
+    {
+        return vars.Current("wCurMap", MapID) && vars.Current("wYCoord", YCoord) && vars.Current("wXCoord", XCoord);
+    });
 
-            new MemoryWatcher<byte>(hramOffset + 0x34) { Name = "input" },
-            new MemoryWatcher<byte>(rBGP) { Name = "rBGP" },
+    var enterMapBreakpoint = 0xAE03u;
+    var itemJingleID = 0x94u;
+
+    vars.GetSplitList = (Func<Dictionary<string, bool>>)(() =>
+    {
+        bool battleOver = vars.Current("wEnemyMonSpecies2", 0) && vars.Current("wStack", enterMapBreakpoint);
+        bool fadeWhite = vars.Current("rBGP", 0);
+        return new Dictionary<string, bool> {
+            {"nidoran", vars.Current("wCurMap", 0x33) && vars.Current("wPartyCount", 2) && vars.Current("wStack", enterMapBreakpoint)},
+            {"route3", vars.Current("wTrainerName", 0x8194867F) && vars.Current("wTrainerNo", 6) && battleOver},
+            {"nuggetBridge", vars.Current("wTrainerName", 0x918E828A) && vars.Current("wCurMap", 0x23) && battleOver},
+            {"hideoutGiovanni", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0xCA) && battleOver},
+            {"silphGiovanni", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0xEB) && battleOver},
+            {"gym1", vars.Current("wTrainerName", 0x81918E82) && battleOver},
+            {"gym2", vars.Current("wTrainerName", 0x8C889293) && battleOver},
+            {"gym3", vars.Current("wTrainerName", 0x8B93E892) && battleOver},
+            {"gym4", vars.Current("wTrainerName", 0x8491888A) && battleOver},
+            {"gym5", vars.Current("wTrainerName", 0x8A8E8680) && battleOver},
+            {"gym6", vars.Current("wTrainerName", 0x92808191) && battleOver},
+            {"gym7", vars.Current("wTrainerName", 0x818B8088) && battleOver},
+            {"gym8", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0x2D) && battleOver},
+            {"elite4_1", vars.Current("wTrainerName", 0x8B8E9184) && battleOver},
+            {"elite4_2", vars.Current("wTrainerName", 0x8191948D) && battleOver},
+            {"elite4_3", vars.Current("wTrainerName", 0x80868093) && battleOver},
+            {"elite4_4", vars.Current("wTrainerName", 0x8B808D82) && battleOver},
+            {"elite4_5", vars.Current("wEnemyMonNick", 0x95848D94) && vars.Current("wCurMap", 0x78) && battleOver},
+
+            {"rival", vars.Current("wCurMap", 0) && vars.Current("wPartyCount", 1)},
+            {"enterMtMoon", vars.IsOnTile(0x3B, 0x05, 0x12)},
+            {"exitMtMoon", vars.IsOnTile(0x0F, 0x03, 0x1B)},
+            {"exitVictoryRoad", vars.IsOnTile(0x22, 0x1F, 0x0E)},
+            {"hm02", vars.Current("wSoundID", itemJingleID) && vars.Current("wCurMap", 0xBC)},
+            {"flute", vars.Current("wSoundID", itemJingleID) && vars.Current("wCurMap", 0x95)},
+
+            // hof
+            {"hof", vars.Current("wCurMap", 0x76) && vars.Current("wHoFMonOrPlayer", 0x01000000) && vars.Current("hofTile", 0x79) && fadeWhite},
+            {"hofany", vars.Current("wHoFMonOrPlayer", 0x01000C00) && vars.Current("wTextDest", 0xF2C4) && fadeWhite},
+
+            // nsc
+            {"rival_one_start", vars.IsOnTile(0x28, 0x06, 0x05) && vars.Current("wPartyCount", 1)},
+            {"rival_one_end", vars.Current("wTrainerName", 0x91848350) && battleOver},
+            {"bc1", vars.Current("wPartyMon1Exp", 0x00E0) && battleOver},
+            {"bc2", vars.Current("wPartyMon1Exp", 0x0143) && battleOver},
+            {"bc3", vars.IsOnTile(0x33, 0x21, 0x1D) && battleOver},
         };
     });
 
-    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
-        return new Dictionary<string, Dictionary<string, uint>> {
-            { "nidoran", new Dictionary<string, uint> { { "partyCount", 2u }, { "stack", 0x03AEu } } },
-            { "route3", new Dictionary<string, uint> { { "opponentName", 0x7F869481 }, { "opponentTrainerNo", 6u }, { "enemyPkmn", 0u }, {"stack", 0x03AEu } } },
-            { "nuggetBridge", new Dictionary<string, uint> { { "opponentName", 0x8A828E91 }, { "mapIndex", 0x23u }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "silphGiovanni", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0xEBu }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym1", new Dictionary<string, uint> { { "opponentName", 0x828E9181 }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym2", new Dictionary<string, uint> { { "opponentName", 0x9392888C }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym3", new Dictionary<string, uint> { { "opponentName", 0x92E8938B }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym4", new Dictionary<string, uint> { { "opponentName", 0x8A889184 }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym5", new Dictionary<string, uint> { { "opponentName", 0x80868E8A }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym6", new Dictionary<string, uint> { { "opponentName", 0x91818092 }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym7", new Dictionary<string, uint> { { "opponentName", 0x88808B81 }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "gym8", new Dictionary<string, uint> { { "opponentName", 0x958E8886 }, { "mapIndex", 0x2Du }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
-            { "elite4_1", new Dictionary<string, uint> { { "opponentName", 0x84918E8B }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } }, //{ "mapIndex", 0xF5u }
-            { "elite4_2", new Dictionary<string, uint> { { "opponentName", 0x8D949181 }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } }, //{ "mapIndex", 0xF6u }
-            { "elite4_3", new Dictionary<string, uint> { { "opponentName", 0x93808680 }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } }, //{ "mapIndex", 0xF7u }
-            { "elite4_4", new Dictionary<string, uint> { { "opponentName", 0x828D808B }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } }, //{ "mapIndex", 0x71u }
-            { "elite4_5", new Dictionary<string, uint> { { "enemyPkmnName", 0x948D8495 }, { "mapIndex", 0x78u }, { "enemyPkmn", 0u }, { "stack", 0x03AEu } } },
+    vars.PrintVar = (Func<string, Action>)(name =>
+    {
+        print(vars.Helper[name].Current.ToString());
+        return;
+    });
 
-            { "rival", new Dictionary<string, uint> { { "mapIndex", 0u }, { "partyCount", 1u } } },
-            { "enterMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x3Bu }, { "playerPos", 0x0E23u } } },
-            { "exitMtMoon", new Dictionary<string, uint> { { "mapIndex", 0x0Fu }, { "playerPos", 0x1805u } } },
-            { "exitVictoryRoad", new Dictionary<string, uint> { { "mapIndex", 0x22u }, { "playerPos", 0x0E1Fu } } },
-            { "hm02", new Dictionary<string, uint> { { "soundID", 0x94u }, { "mapIndex", 0xBCu } } },
-            { "flute", new Dictionary<string, uint> { { "soundID", 0x94u }, { "mapIndex", 0x95u } } },
-            { "hof", new Dictionary<string, uint> { { "mapIndex", 0x76u }, { "hofPlayerShown", 1u }, { "hofTile", 0x79u }, { "rBGP", 0u } } },
-        };
+    vars.PrintHex = (Func<string, Action>)(name =>
+    {
+        print(vars.Helper[name].Current.ToString("X"));
+        return;
     });
 }
 
 init {
-    vars.watchers = new MemoryWatcherList();
-    vars.splits = new Dictionary<string, Dictionary<string, uint>>();
+    vars.pastSplits = new HashSet<string>();
+    refreshRate = 200 / 3.0;
+}
 
-    if (!vars.TryFindOffsets(game)) {
-        throw new Exception("[Autosplitter] Emulated memory not yet initialized.");
-    } else {
-        refreshRate = 200/3.0;
+update
+{
+    if(timer.CurrentPhase == TimerPhase.NotRunning && vars.pastSplits.Count > 0) {
+        vars.pastSplits.Clear();
     }
 }
 
-update {
-    vars.watchers.UpdateAll(game);
-}
-
 start {
-    return vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x80) == 0 && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5BA7;
+    return current.wCurrentMenuItem == 0 && current.wPlayerID == 0 && current.wStack == 0x915B && (current.hJoyHeld & 0x80) == 0;
 }
 
 reset {
-    bool downBuffer = vars.watchers["cursorIndex"].Current == 0 && (vars.watchers["input"].Current & 0x80) == 1;
-    bool notBuffered = vars.watchers["cursorIndex"].Current == 1 && (vars.watchers["input"].Current & 0x01) == 1;
-    return (downBuffer || notBuffered) && vars.watchers["playerID"].Current == 0 && vars.watchers["stack"].Current == 0x5BA7;
+    return current.wCurrentMenuItem == 1 && current.wPlayerID == 0 && current.wStack == 0x915B;
 }
 
 split {
-    foreach (var _split in vars.splits) {
-       if (settings[_split.Key]) {
-            var count = 0;
-            foreach (var _condition in _split.Value) {
-                if (vars.watchers[_condition.Key].Current == _condition.Value) {
-                    count++;
-                }
-            }
+    var splits = vars.GetSplitList();
 
-            if (count == _split.Value.Count) {
-                print("[Autosplitter] Split: " + _split.Key);
-                vars.splits.Remove(_split.Key);
-                return true;
-            }
+    foreach(var split in splits) {
+        if (settings[split.Key] && split.Value && !vars.pastSplits.Contains(split.Key)) {
+            vars.pastSplits.Add(split.Key);
+            print("[AutoSplitter] Split: " + split.Key);
+            return true;
         }
     }
 }
 
 exit {
     refreshRate = 0.5;
-}
-
-shutdown {
-    timer.OnStart -= vars.timer_OnStart;
 }
