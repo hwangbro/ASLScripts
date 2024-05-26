@@ -96,7 +96,7 @@ startup
         bool battleOver = vars.Current("wEnemyMonSpecies2", 0) && vars.Current("wStack", enterMapBreakpoint);
         bool fadeWhite = vars.Current("rBGP", 0);
         return new Dictionary<string, bool> {
-            {"nidoran", vars.Current("wCurMap", 0x33) && vars.Current("wPartyCount", 2) && vars.Current("wStack", enterMapBreakpoint)},
+            {"nidoran", vars.Current("wCurMap", 0x21) && vars.Current("wPartyCount", 2) && vars.Current("wStack", enterMapBreakpoint)},
             {"route3", vars.Current("wTrainerName", 0x8194867F) && vars.Current("wTrainerNo", 6) && battleOver},
             {"nuggetBridge", vars.Current("wTrainerName", 0x918E828A) && vars.Current("wCurMap", 0x23) && battleOver},
             {"hideoutGiovanni", vars.Current("wTrainerName", 0x86888E95) && vars.Current("wCurMap", 0xCA) && battleOver},
