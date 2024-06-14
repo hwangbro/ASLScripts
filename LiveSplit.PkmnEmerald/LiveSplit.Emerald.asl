@@ -30,8 +30,8 @@ startup
 
     vars.Helper.Load = (Func<dynamic, bool>)(emu =>
     {
-        var gSaveBlock1PtrAddr = 0x03005D8C;
-        var gSaveBlock2PtrAddr = 0x03005D90;
+        uint gSaveBlock1PtrAddr = 0x03005D8C;
+        uint gSaveBlock2PtrAddr = 0x03005D90;
         emu.Make<ushort>("newKeys", 0x030022EE); // A = 1, B = 2, start = 8, sel = 4
         emu.Make<uint>("gTasks", 0x03005e00);
         emu.Make<byte>("cursorPos", 0x03005e00 + 0xA);
@@ -39,7 +39,7 @@ startup
         emu.Make<ushort>("gTrainerBattleOpponent_A", 0x02038bca); // opp trainer id
         emu.Make<byte>("fadeDelayCounter", 0x02037FD9); // gPaletteFade + 5
         emu.Make<ushort>("fadeTarget", 0x02037FDA); // gPaletteFade + 6
-        emu.Make<byte>("hofFadeVariable", 0x02037FDD); // gPaletteFade + 8
+        emu.Make<byte>("hofFadeVariable", 0x02037FDD); // gPaletteFade + 9
         emu.Make<byte>("oppFaintCounter", 0x03005d11); // gBattleResults.opponentFaintCounter
 
         emu.Make<ushort>("xCoord", gSaveBlock1PtrAddr, 0);
