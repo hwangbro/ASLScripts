@@ -1,4 +1,5 @@
 state("GSR") { }
+state("GSE") { }
 state("gambatte_speedrun") { }
 
 startup
