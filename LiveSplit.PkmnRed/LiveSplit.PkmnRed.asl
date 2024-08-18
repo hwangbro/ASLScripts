@@ -130,6 +130,7 @@ startup
             // nsc
             {"rival_one_start", vars.IsOnTile(0x28, 0x06, 0x05) && vars.Current("wPartyCount", 1)},
             {"rival_one_end", vars.Current("wTrainerName", 0x91848350) && battleOver},
+            {"deathfly", vars.IsOnTile(0x33, 0x12, 0x01) && vars.Current("wBattleMonHP", 0) && vars.Current("wStack", 0x3909)},
             {"bc1", vars.Current("wPartyMon1Exp", 0x00E0) && battleOver},
             {"bc2", vars.Current("wPartyMon1Exp", 0x0143) && battleOver},
             {"bc3", vars.IsOnTile(0x33, 0x21, 0x1D) && battleOver},
