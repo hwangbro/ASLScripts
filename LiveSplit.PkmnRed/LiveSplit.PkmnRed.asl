@@ -167,7 +167,8 @@ start {
 }
 
 reset {
-    return current.wCurrentMenuItem == 1 && current.wPlayerID == 0 && current.wStack == 0x915B;
+    isRaceRun = timer.CurrentTime.ToString().StartsWith("-");
+    return current.wCurrentMenuItem == 1 && current.wPlayerID == 0 && current.wStack == 0x915B && !isRaceRun;
 }
 
 split {
