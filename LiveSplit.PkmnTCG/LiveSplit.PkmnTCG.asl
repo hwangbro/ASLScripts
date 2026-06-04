@@ -1,6 +1,6 @@
-state("gambatte_qt") {}
-state("gambatte") {}
-state("gambatte_speedrun") {}
+state("GSR") { }
+state("GSE") { }
+state("gambatte_speedrun") { }
 
 startup {
     //-------------------------------------------------------------//
@@ -22,105 +22,81 @@ startup {
 
     refreshRate = 0.5;
 
-    vars.timer_OnStart = (EventHandler)((s, e) => {
-        vars.splits = vars.GetSplitList();
-    });
-    timer.OnStart += vars.timer_OnStart;
+    Assembly.Load(File.ReadAllBytes("Components/emu-help-v2")).CreateInstance("GBC");
 
-    vars.TryFindOffsets = (Func<Process, bool>)((proc) => {
-        print("[Autosplitter] Scanning memory");
-        var target = new SigScanTarget(0, "20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 20 ?? ?? ?? 05 00 00");
+    vars.Helper.Load = (Func<dynamic, bool>)(emu =>
+    {
+        emu.Make<byte>("wWhoseTurn", 0x0C05);
+        emu.Make<byte>("wDuelFinished", 0x0C07);
+        emu.Make<ushort>("wOpponentName", 0x0C16);
+        emu.Make<byte>("wCurMenuItem", 0x0D10);
+        emu.Make<byte>("wMenuCursorXOffset", 0x0D11);
+        emu.Make<byte>("wGameEvent", 0x10B5);
+        emu.Make<byte>("wTempMap", 0x10BB);
+        emu.Make<byte>("wCurSongID", 0x1D80);
+        emu.Make<ushort>("wScriptPointer", 0x1413);
 
-        int scanOffset = 0;
-        foreach (var page in proc.MemoryPages()) {
-            var scanner = new SignatureScanner(proc, page.BaseAddress, (int)page.RegionSize);
-            if ((scanOffset = (int)scanner.Scan(target)) != 0) {
-                break;
-            }
-        }
+        emu.Make<byte>("hKeysPressed", 0xFF91);
 
-        if (scanOffset != 0) {
-            var wramOffset = scanOffset - 0x10;
-            vars.watchers = vars.GetWatcherList((int)(wramOffset - 0x400000), (IntPtr)(scanOffset + 0x147C), (IntPtr)(scanOffset + 0x1443));
-            print("[Autosplitter] WRAM Pointer: " + wramOffset.ToString("X8"));
-
-            return true;
-        }
-
-        return false;
+        return true;
     });
 
-    vars.GetWatcherList = (Func<int, IntPtr, IntPtr, MemoryWatcherList>)((wramOffset, hramOffset, rBGP) => {
-        return new MemoryWatcherList {
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C05)) { Name = "whoseTurn"},
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0C07)) { Name = "duelFinished"},
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x0C16)) { Name = "opponentName" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0D10)) { Name = "curMenuItem"},
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x0D11)) { Name = "cursorXPos"},
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10B5)) { Name = "inEvent"},
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x10BB)) { Name = "roomID" },
-            new MemoryWatcher<byte>(new DeepPointer(wramOffset, 0x1D80)) { Name = "curSongID"},
-            new MemoryWatcher<ushort>(new DeepPointer(wramOffset, 0x1413)) { Name = "scriptPointer"},
-
-            new MemoryWatcher<byte>(hramOffset + 0x11) { Name = "input" },
-        };
+    vars.Current = (Func<string, uint, bool>)((name, value) => 
+    {
+        return vars.Helper[name].Current == value;
     });
 
-    vars.GetSplitList = (Func<Dictionary<string, Dictionary<string, uint>>>)(() => {
-        return new Dictionary<string, Dictionary<string, uint>> {
-            { "isaac", new Dictionary<string, uint> { { "opponentName", 0x03C3u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "nikki", new Dictionary<string, uint> { { "opponentName", 0x03C7u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "amy", new Dictionary<string, uint> { { "opponentName", 0x03BFu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "gene", new Dictionary<string, uint> { { "opponentName", 0x03BBu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "ken", new Dictionary<string, uint> { { "opponentName", 0x03D3u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "murray", new Dictionary<string, uint> { { "opponentName", 0x03CBu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "rick", new Dictionary<string, uint> { { "opponentName", 0x03CFu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "mitch", new Dictionary<string, uint> { { "opponentName", 0x03B7u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "courtney", new Dictionary<string, uint> { { "opponentName", 0x03D4u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "steve", new Dictionary<string, uint> { { "opponentName", 0x03D5u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "jack", new Dictionary<string, uint> { { "opponentName", 0x03D6u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "rod", new Dictionary<string, uint> { { "opponentName", 0x03D7u }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u } } },
-            { "ronald", new Dictionary<string, uint> { { "opponentName", 0x3ADu }, { "duelFinished", 0x01u }, { "whoseTurn", 0xC2u }, { "inEvent", 0x00u }, { "roomID", 0x20u } } },
-            { "end", new Dictionary<string, uint> { { "roomID", 0x01u }, { "scriptPointer", 0x7C0Cu } } },
+    vars.GetSplitList = (Func<Dictionary<string, bool>>)(() =>
+    {
+        bool battleOver = vars.Current("wDuelFinished", 1) && vars.Current("wWhoseTurn", 0xC2) && vars.Current("wGameEvent", 0);
+
+        return new Dictionary<string, bool> {
+            {"isaac", vars.Current("wOpponentName", 0xC303) && battleOver},
+            {"nikki", vars.Current("wOpponentName", 0xC703) && battleOver},
+            {"amy", vars.Current("wOpponentName", 0xBF03) && battleOver},
+            {"gene", vars.Current("wOpponentName", 0xBB03) && battleOver},
+            {"ken", vars.Current("wOpponentName", 0xD303) && battleOver},
+            {"murray", vars.Current("wOpponentName", 0xCB03) && battleOver},
+            {"rick", vars.Current("wOpponentName", 0xCF03) && battleOver},
+            {"mitch", vars.Current("wOpponentName", 0xB703) && battleOver},
+            {"courtney", vars.Current("wOpponentName", 0xD403) && battleOver},
+            {"steve", vars.Current("wOpponentName", 0xD503) && battleOver},
+            {"jack", vars.Current("wOpponentName", 0xD603) && battleOver},
+            {"rod", vars.Current("wOpponentName", 0xD703) && battleOver},
+            {"ronald", vars.Current("wOpponentName", 0xAD03) && battleOver && vars.Current("wTempMap", 0x20)},
+            {"end", vars.Current("wTempMap", 1) && vars.Current("wScriptPointer", 0x0C7C)},
         };
     });
 }
 
 init {
-    vars.watchers = new MemoryWatcherList();
-    vars.splits = new Dictionary<string, Dictionary<string, uint>>();
-
-    if (!vars.TryFindOffsets(game)) {
-        throw new Exception("Emulated memory not yet initialized.");
-    } else {
-        refreshRate = 200/3.0;
-    }
+    vars.pastSplits = new HashSet<string>();
+    refreshRate = 200 / 3.0;
 }
 
 update {
-    vars.watchers.UpdateAll(game);
+    if(timer.CurrentPhase == TimerPhase.NotRunning && vars.pastSplits.Count > 0)
+    {
+        vars.pastSplits.Clear();
+    }
 }
 
 start {
-    return vars.watchers["cursorXPos"].Current == 0x01 && (vars.watchers["input"].Current & 0x1) == 1 && vars.watchers["curSongID"].Old == 0x86 && vars.watchers["curMenuItem"].Current == 0x1;
+    return current.wMenuCursorXOffset == 1 && (current.hKeysPressed & 0x1) == 1 && old.wCurSongID == 0x86 && current.wCurMenuItem == 0x1;
 }
 
 split {
-    foreach (var _split in vars.splits) {
-        if (settings[_split.Key]) {
-            var count = 0;
-            foreach (var _condition in _split.Value) {
-                if (vars.watchers[_condition.Key].Current == _condition.Value) {
-                    count++;
-                }
-            }
+    var splits = vars.GetSplitList();
 
-            if (count == _split.Value.Count) {
-                print("[Autosplitter] Split: " + _split.Key);
-                vars.splits.Remove(_split.Key);
-                return true;
-            }
+    foreach(var split in splits)
+    {
+        if (settings[split.Key] && split.Value && !vars.pastSplits.Contains(split.Key))
+        {
+            vars.pastSplits.Add(split.Key);
+            print("[AutoSplitter] Split: " + split.Key);
+            return true;
         }
+
     }
 }
 
