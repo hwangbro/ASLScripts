@@ -2,8 +2,8 @@
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Pokémon Yellow Version** on emulator.
 
 ### Supported emulators:
-- Gambatte-Speedrun r600+
-    - **Note:** Your emulator must be named "gambatte_speedrun.exe" or "gambatte.exe" in order for the splitter to work.
+- GSE
+    - **Note:** Your emulator should be named "GSE.exe" for the splitter to work.
 
 ## Features
 - Automatically start the timer when you start a new game

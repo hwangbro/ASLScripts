@@ -1,9 +1,10 @@
-# LiveSplit.PkmnRed
+# LiveSplit.PkmnTCG
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Pokémon Trading Card Game** on emulator.
 
 ### Supported emulators:
-- Gambatte-Speedrun r600+
-    - **Note:** Your emulator must be named "gambatte_speedrun.exe" or "gambatte.exe" in order for the splitter to work.
+- GSE
+    - **Note:** Your emulator should be named "GSE.exe" for the splitter to work.
+
 
 ## Features
 - Automatically start the timer when you start a new game
@@ -26,4 +27,5 @@ Here you can enable/disable the options for auto start, auto reset, and auto spl
 ## Contact
 If you encounter any issues or have any feature requests, please let me know! :)
 - Twitch: https://www.twitch.tv/hwangbroxd
-- Pokemon Community Discord: https://discord.gg/0UUw8zDe2hWlwRsm
+- Pokemon TCG Speedrun Discord: https://discord.gg/wga5aVzs
+

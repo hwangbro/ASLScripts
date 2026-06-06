@@ -2,9 +2,9 @@
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Pokémon Emerald** on emulator.
 
 ### Supported emulators:
-- [GSR](https://github.com/CasualPokePlayer/gsr/)
+- [GSE](https://github.com/CasualPokePlayer/gse/)
 - [mGBA](https://github.com/mgba-emu/mgba)
-    - **Note:** Your emulator must be named `GSR.exe` or `mGBA.exe` order for the splitter to work.
+    - **Note:** Your emulator must be named `GSE.exe` or `mGBA.exe` order for the splitter to work.
 
 ## Features
 - Automatically start the timer when you start a new game
