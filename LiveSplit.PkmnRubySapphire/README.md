@@ -1,4 +1,4 @@
-# LiveSplit.PkmnRed++
+# LiveSplit.PkmnRubySapphire
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Pokémon Ruby/Sapphire** on emulator.
 
 ### Supported emulators:

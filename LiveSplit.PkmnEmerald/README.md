@@ -1,4 +1,4 @@
-# LiveSplit.PkmnRed++
+# LiveSplit.PkmnEmerald
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Pokémon Emerald** on emulator.
 
 ### Supported emulators:

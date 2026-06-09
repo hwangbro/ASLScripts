@@ -1,4 +1,4 @@
-# LiveSplit.PkmnRed++
+# LiveSplit.PkmnFRLG
 This is a [LiveSplit](http://livesplit.github.io) [ASL](https://github.com/LiveSplit/LiveSplit/blob/master/Documentation/Auto-Splitters.md) script for **Pokémon FireRed/LeafGreen** on emulator.
 
 ### Supported emulators:
