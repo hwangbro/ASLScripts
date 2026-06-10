@@ -4,6 +4,30 @@ state("gambatte_speedrun") { }
 
 startup {
     //-------------------------------------------------------------//
+    settings.Add("anypercent_group", true, "Club Members, Masters, & Pokémon Dome");
+    settings.SetToolTip("anypercent_group", "All opponents for the Any% category.");
+    settings.Add("club_members_anyp", false, "Club Members (Any%)", "anypercent_group");
+    settings.SetToolTip("club_members_anyp", "All non-Master opponents required in the Any% category before the Pokémon Dome.");
+        //technically, not "All opponents" yet. Need to figure out how to handle the early Ronalds (and if you win OR lose).
+            //for now, you'd have to manually split for the Ronald duel after collecting 2 and 5 master medals
+        //also, setting the initial value for this parent group to be false, for those who don't include the members in their splits
+    settings.CurrentDefaultParent = "club_members_anyp";
+        //the club members are organized in order of their ID values. it's more obvious below
+	settings.Add("chris", true, "Chris");
+	settings.Add("michael", true, "Michael");
+	settings.Add("jessica", true, "Jessica");
+	settings.Add("sara", true, "Sara");
+	settings.Add("amanda", true, "Amanda");
+	settings.Add("joshua", true, "Joshua");
+	settings.Add("jennifer", true, "Jennifer");
+	settings.Add("nicholas", true, "Nicholas");
+	settings.Add("brandon", true, "Brandon");
+	settings.Add("brittany", true, "Brittany");
+	settings.Add("kristin", true, "Kristin");
+	settings.Add("heather", true, "Heather");
+	settings.Add("joseph", true, "Joseph");
+        //left the [club/grand] masters/ronald in the order Hwangbro had but made a parent group for them
+    settings.CurrentDefaultParent = "anypercent_group";
     settings.Add("isaac", true, "Isaac");
     settings.Add("nikki", true, "Nikki");
     settings.Add("amy", true, "Amy");
@@ -51,6 +75,20 @@ startup {
         bool battleOver = vars.Current("wDuelFinished", 1) && vars.Current("wWhoseTurn", 0xC2) && vars.Current("wGameEvent", 0);
 
         return new Dictionary<string, bool> {
+            {"chris", vars.Current("wOpponentName", 0xB403) && battleOver},
+			{"michael", vars.Current("wOpponentName", 0xB503) && battleOver},
+			{"jessica", vars.Current("wOpponentName", 0xB603) && battleOver},
+			{"sara", vars.Current("wOpponentName", 0xBC03) && battleOver},
+			{"amanda", vars.Current("wOpponentName", 0xBD03) && battleOver},
+			{"joshua", vars.Current("wOpponentName", 0xBE03) && battleOver},
+			{"jennifer", vars.Current("wOpponentName", 0xC003) && battleOver},
+			{"nicholas", vars.Current("wOpponentName", 0xC103) && battleOver},
+			{"brandon", vars.Current("wOpponentName", 0xC203) && battleOver},
+			{"brittany", vars.Current("wOpponentName", 0xC403) && battleOver},
+			{"kristin", vars.Current("wOpponentName", 0xC503) && battleOver},
+			{"heather", vars.Current("wOpponentName", 0xC603) && battleOver},
+			{"joseph", vars.Current("wOpponentName", 0xCC03) && battleOver},
+			    // for now, leaving the club members on top, then the club masters, grand masters, ronald at the end
             {"isaac", vars.Current("wOpponentName", 0xC303) && battleOver},
             {"nikki", vars.Current("wOpponentName", 0xC703) && battleOver},
             {"amy", vars.Current("wOpponentName", 0xBF03) && battleOver},
